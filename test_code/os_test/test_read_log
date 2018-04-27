@@ -1,0 +1,100 @@
+13:21:7 appmain.cpp-00137:SmartTap_ManualTest - CANCEL-RetCode:0x0043
+13:21:24 appmain.cpp-00106:SmartTap_ManualTest-Entry
+13:21:29 appmain.cpp-00232:SmartTap_PerformTest-Entry
+13:21:29 appmain.cpp-00237:TC#: 45
+13:21:29 appmain.cpp-00240:TC#: 45.xml
+13:21:29 ConfigReader.cpp-00083 xml File name is:34352E786D6C
+13:21:29 ConfigReader.cpp-00736:m_enTapProcess is 1
+13:21:29 ConfigReader.cpp-00875:Tap is 1
+13:21:29 ConfigReader.cpp-00877:bAllowSkipSmartTap2 is 1
+13:21:29 ConfigReader.cpp-00878:retry num is 30
+13:21:29 ConfigReader.cpp-00879:V1.3A is 0
+13:21:29 ConfigReader.cpp-00880:V1.3B is 0
+13:21:29 ConfigReader.cpp-00881:V2.1 is 1
+13:21:29 ConfigReader.cpp-00883:bRequestPayment is 0
+13:21:29 ConfigReader.cpp-00884:bStop is 0
+13:21:29 ConfigReader.cpp-00886:bUseEncryption is 0
+13:21:29 ConfigReader.cpp-00887:bPresignedAuth is 0
+13:21:29 ConfigReader.cpp-00889:bSendVal is 1
+13:21:29 ConfigReader.cpp-00890 Service Type:00
+13:21:29 ConfigReader.cpp-00892:bUsage is 0
+13:21:29 ConfigReader.cpp-00893:bManualUsage is 0
+13:21:29 ConfigReader.cpp-00894:bManualUpdae is 0
+13:21:29 ConfigReader.cpp-00895:bConsolidateStatus is 0
+13:21:29 ConfigReader.cpp-00897 OID:
+13:21:29 ConfigReader.cpp-00898 cStatusByte:
+13:21:29 ConfigReader.cpp-00899 cTitle:
+13:21:29 ConfigReader.cpp-00900 cDescription:
+13:21:29 ConfigReader.cpp-00901 cOperationByte:
+13:21:29 ConfigReader.cpp-00902 cUpdatePayload:
+13:21:29 ConfigReader.cpp-00904 cTypeByte:
+13:21:29 ConfigReader.cpp-00905 cNSRTitle:
+13:21:29 ConfigReader.cpp-00906 cURI:
+13:21:29 ConfigReader.cpp-00868 cOutput:DF000101DF010101DF030101DF040130DF050100DF060100DF070100DF080100DF090100DF1000DF1100DF1200DF1300DF1400DF1500DF1600DF1700DF1800
+13:21:29 smarttap.cpp-00044:SmartTap_Proc-Entry
+13:21:29 smarttap.cpp-00117:SmartTap_VASOnlyProc-Entry
+13:21:29 smarttap.cpp-00920:OnlyTap_GetData-Entry
+[Calc] SmartTapSelectOSE Time: 11853927
+13:21:29 smarttap.cpp-01392:SmartTapSelectOSE-Entry
+[Calc] GenerateSessionID Time: 11853927
+13:21:29 stpcommand.cpp-01847 Session ID:82577CAD83004E57
+[Calc] GenerateSessionID Time: 11853933
+[Calc] ParseOSEFlag Time: 11853933
+13:21:29 stpcommand.cpp-02038 AID Exist:01
+13:21:29 stpcommand.cpp-02047 ServiceType:01
+[Calc] ParseOSEFlag Time: 11853934
+13:21:29 stpcommand.cpp-00918:CheckCardExist-Entry
+13:21:30 stpcommand.cpp-00965:CheckCardExist-Exit, RetCode:0x0000
+[Calc] CTOS_CLAPDU Time: 11855235
+[Calc] CTOS_CLAPDU Time: 11855399
+13:21:30 smarttap.cpp-01430:Receive Msg length[117]
+[Calc] ParseOSERsp Time: 11855399
+13:21:30 stpcommand.cpp-00467:ParseOSERsp-Entry
+13:21:30 stpcommand.cpp-00473 OSE Rsp:6F71500A416E64726F6964506179C0020001C108CC00000000008080C220973E649AC1F203CA74360F05873AC3AA6D583058B24BED90363DA9B1DDDA33D0A533BF0C30610E4F09A000000476D0000101870102611E4F09A000000476D0000111870101730EDF6D020000DF4D020001DF620103
+13:21:30 stpcommand.cpp-00594:50 tag NOT found
+13:21:30 stpcommand.cpp-00613:73 tag NOT found
+13:21:30 stpcommand.cpp-00594:50 tag NOT found
+13:21:30 stpcommand.cpp-00649:DF6E tag NOT found
+13:21:30 stpcommand.cpp-00676:Priority:1
+13:21:30 stpcommand.cpp-00677 AID     :A000000476D0000111
+[Calc] ParseOSERsp Time: 11855403
+13:21:30 stpcommand.cpp-00680:ParseOSERsp-Exit, RetCode:0x0000
+13:21:30 smarttap.cpp-01452:parse OSE response OK, SW[9000]
+[Calc] CreateSelect2Req Time: 11855404
+13:21:30 stpcommand.cpp-00203:CreateSelect2Req-Entry
+[Calc] CreateSelect2Req Time: 11855404
+13:21:30 stpcommand.cpp-00253:CreateSelect2Req-Exit, RetCode:0x0000
+[Calc] SmartTapSelectOSE Time: 11855404
+13:21:30 smarttap.cpp-01519:SmartTapSelectOSE-Exit, RetCode:0x0000
+13:21:30 smarttap.cpp-00937:!!!!!!!!!!!wSelectSW:  9000
+[Calc] SmartTapGetData Time: 11855405
+13:21:30 smarttap.cpp-01687:SmartTapGetData-Entry
+[Calc] CreateGetDataReq Time: 11855405
+13:21:30 stpcommand.cpp-00273:CreateGetDataReq-Entry
+[Calc] SetSesRecParam Time: 11855406
+13:21:30 stpcommand.cpp-01022:SetSesRecParam-Entry
+[Calc] SetSesRecParam Time: 11855406
+13:21:30 stpcommand.cpp-01034:SetSesRecParam-Exit, RetCode:0x0000
+13:21:30 NDEF.cpp-00514:Pack-Entry
+13:21:30 NDEF.cpp-00585:Pack-Exit, RetCode:0x0000
+[Calc] SetMerRecParam Time: 11855407
+13:21:30 stpcommand.cpp-01170:SetMerRecParam-Entry
+[Calc] SetCldRecParam Time: 11855407
+13:21:30 stpcommand.cpp-01087:SetCldRecParam-Entry
+13:21:30 stpcommand.cpp-01094:SetCldRecParam-Exit, RetCode:0x0000
+[Calc] SetCldRecParam Time: 11855413
+13:21:30 NDEF.cpp-00514:Pack-Entry
+13:21:30 NDEF.cpp-00585:Pack-Exit, RetCode:0x0000
+13:21:30 stpcommand.cpp-01260:SetMerRecParam-Exit, RetCode:0x0000
+[Calc] SetMerRecParam Time: 11855414
+13:21:30 NDEF.cpp-00514:Pack-Entry
+13:21:30 NDEF.cpp-00585:Pack-Exit, RetCode:0x0000
+[Calc] GenerateSlrRecod Time: 11855415
+13:21:30 stpcommand.cpp-01640:GenerateSlrRecod-Entry
+13:21:30 stpcommand.cpp-01652 ServiceType:00
+[Calc] SetStrRecParam Time: 11855416
+13:21:30 stpcommand.cpp-01116:SetStrRecParam-Entry
+13:21:30 stpcommand.cpp-01123:SetStrRecParam-Exit, RetCode:0x0000
+[Calc] SetStrRecParam Time: 11855416
+13:21:30 NDEF.cpp-00514:Pack-Entry
+13:21:30 NDEF.cpp-00585:P
