@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import time
 
 def main():
     read_file()
@@ -32,23 +33,59 @@ def write_file():
         return True
 
 def read_file():
-    files_name = files_operation('test.log', 'test_read_log')
-    files = open(files_name, 'r+')
-    if files is None:
-        print('open file NOK')
+    files_name = files_rename('test.log', 'test_read_log')
+    if files_name is None:
+        return False
+    try:
+        files = open(files_name, 'rb+')
+        log = open('out.log', 'w')
+    except IOError as e:
+        print('open file NOK' + e)
         return False
     files_size = 0
     read_size = 80
+    files.truncate(5120)
     while True:
-        data = files.read(read_size)
+        #data = files.read(read_size)
+        #'''
+        if files_size < 10240:
+            data = files.read(read_size)
+            print('read:---%d: ' % files.tell(), end='')
+            print(data)
+        elif files_size < 20480:
+            try:
+                data = next(files)
+            except StopIteration as e:
+                data = ''
+                print('exception: ', end='')
+                print(e)
+            else:
+                print('next:---%d: ' % files.tell(), end='')
+                print(data, file=log)
+                log.close()
+        elif files_size < 30720:
+            data = files.readline()
+            print('readline:---%d: ' % files.tell(), end='')
+            print(data)
+        elif files_size < 40960:
+            data = files.readlines()   #return is list
+            print('readlines:---%d: ' % files.tell(), end='')
+            print(data)
+         #'''
         files_size += len(data)
-        if len(data) < read_size:
-            break
-        print(data)
+        #if len(data) < read_size:
+        if len(data) == 0:
+            print('TotalSize %d' % files_size)
+            files.close()
+            return True
         
-        
-
-def files_operation(old_file, new_file):
+    
+def files_rename(old_file, new_file):
+    if not os.path.exists(old_file):   #检测文件或文件夹是否存在
+        return None
+    if os.path.exists(new_file):   #检测文件或文件夹是否存在
+        os.unlink(new_file)
+    #time.sleep(5)
     result = shutil.copy(old_file, new_file)
     print(result)
     if result is not None:
