@@ -12,6 +12,9 @@ def main():
     re_sub()
     re_repl()
     re_compile()
+    re_findall()
+    re_finditer()
+    re_split()
 
     
 def re_match():
@@ -82,18 +85,33 @@ def re_compile():
     print(m)
     m = pattern.match(string, 13, 15)
     print(m)
-    m = pattern.search(string)
+    m = pattern.search(string)   #如何获得多个匹配的字串，适用findall
     print(m)
     print('\n')
 
 def re_findall():
-    pass
+    os.system(cmd)
+    string = 'one12twothree34four'
+    pattern = re.compile(r'\d+')   #pattern可用match, search, findall
+    print(pattern)
+    m = pattern.findall(string)
+    print(m)
+    print('\n')
 
 def re_finditer():
-    pass
+    os.system(cmd)
+    string = 'one12895twothree3405four'
+    it = re.finditer(r'\d+', string, re.I|re.M)
+    for x in it:
+        print(x.group(), end='')
+    print('\n')
 
 def re_split():
-    pass
+    os.system(cmd)
+    string = r'12#3_a.bc-45.6-.d.ef.'
+    result = re.split(r'\W', string, re.I|re.M)
+    print(result)
+    print('\n')
 
 if __name__ == '__main__':
     main()
