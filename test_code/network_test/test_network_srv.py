@@ -16,9 +16,6 @@ def client():
     s.close()
     print(msg.decode('utf-8'))
 
-
-
-
 def server():
     sersock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     host = socket.gethostname()
@@ -34,7 +31,7 @@ def server():
         clisock.close()
 
 def main():
-    client()
+    server()
 
 if __name__ == '__main__':
     main()
