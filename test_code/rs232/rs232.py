@@ -971,188 +971,185 @@ if __name__ == "__main__":
     print('* 11 ->  close                                               ')
     print('********************************')
     rs232 = RS232('COM4')
-    index = input('plz chose case: ')
-    # setconfig
-    if operator.eq(index, '0'):
-        if rs232.setConfig(reader_config_object):
-            print('set config OK')
-        else:
-            print('set config NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
-    # getconfig
-    if operator.eq(index, '1'):
-        if rs232.setConfig(reader_config_object):
-            print('set config OK')
-        else:
-            print('set config NOK')
-        if rs232.getConfig():
-            print('get config OK')
-        else:
-            print('get config NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
-    # setCAPK
-    if operator.eq(index, '2'):
-        if rs232.setCAPK(CAPK_object):
-            print('set CAPK OK')
-        else:
-            print('set CAPK NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
-    # getCAPK
-    if operator.eq(index, '3'):
-        if rs232.getCAPK():
-            print('get CAPK OK')
-        else:
-            print('get CAPK NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
-    # deleteCAPK        
-    if operator.eq(index, '4'):
-        if rs232.deleteCAPK():
-            print('delete CAPK OK')
-        else:
-            print('delete CAPK NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
-    # getPollingModes
-    if operator.eq(index, '5'):
-        if rs232.getPollingModes():
-            print('get polling Modes OK')
-        else:
-            print('get polling Modes NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+    while True:
+        index = input('plz choose case: ')
+        # setconfig
+        if operator.eq(index, '0'):
+            if rs232.setConfig(reader_config_object):
+                print('set config OK')
+            else:
+                print('set config NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
+        # getconfig
+        if operator.eq(index, '1'):
+            if rs232.setConfig(reader_config_object):
+                print('set config OK')
+            else:
+                print('set config NOK')
+            if rs232.getConfig():
+                print('get config OK')
+            else:
+                print('get config NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
+        # setCAPK
+        if operator.eq(index, '2'):
+            if rs232.setCAPK(CAPK_object):
+                print('set CAPK OK')
+            else:
+                print('set CAPK NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
+        # getCAPK
+        if operator.eq(index, '3'):
+            if rs232.getCAPK():
+                print('get CAPK OK')
+            else:
+                print('get CAPK NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
+        # deleteCAPK        
+        if operator.eq(index, '4'):
+            if rs232.deleteCAPK():
+                print('delete CAPK OK')
+            else:
+                print('delete CAPK NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
+        # getPollingModes
+        if operator.eq(index, '5'):
+            if rs232.getPollingModes():
+                print('get polling Modes OK')
+            else:
+                print('get polling Modes NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, '6'):
-        if rs232.reset():
-            print('reset OK')
-        else:
-            print('reset NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, '6'):
+            if rs232.reset():
+                print('reset OK')
+            else:
+                print('reset NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, '7'):
-        if rs232.getSerialNumber():
-            print('get SerialNumber OK')
-        else:
-            print('get SerialNumber NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, '7'):
+            if rs232.getSerialNumber():
+                print('get SerialNumber OK')
+            else:
+                print('get SerialNumber NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, '8'):
-        if rs232.getFWVersion():
-            print('get FWVersion OK')
-        else:
-            print('get FWVersion NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, '8'):
+            if rs232.getFWVersion():
+                print('get FWVersion OK')
+            else:
+                print('get FWVersion NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, '9'):
-        if rs232.getPaymentAppletVersion():
-            print('get PaymentAppletVersion OK')
-        else:
-            print('get PaymentAppletVersion NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, '9'):
+            if rs232.getPaymentAppletVersion():
+                print('get PaymentAppletVersion OK')
+            else:
+                print('get PaymentAppletVersion NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, 'A') or operator.eq(index, 'a'):
-        if rs232.getVASAppletVersion():
-            print('get VASAppletVersion OK')
-        else:
-            print('get VASAppletVersion NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, 'A') or operator.eq(index, 'a'):
+            if rs232.getVASAppletVersion():
+                print('get VASAppletVersion OK')
+            else:
+                print('get VASAppletVersion NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, 'B') or operator.eq(index, 'b'):
-        if rs232.startTransaction(transaction_start_object):
-            print('start Transaction OK')
-        else:
-            print('start Transaction NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, 'B') or operator.eq(index, 'b'):
+            if rs232.startTransaction(transaction_start_object):
+                print('start Transaction OK')
+            else:
+                print('start Transaction NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, 'C') or operator.eq(index, 'c'):
-        if rs232.getTransactionStatus():
-            print('get Transaction Status OK')
-        else:
-            print('get Transaction Status NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, 'C') or operator.eq(index, 'c'):
+            if rs232.getTransactionStatus():
+                print('get Transaction Status OK')
+            else:
+                print('get Transaction Status NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, 'D') or operator.eq(index, 'd'):
-        if rs232.getTransactionResult():
-            print('get Transaction Result OK')
-        else:
-            print('get Transaction Result NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, 'D') or operator.eq(index, 'd'):
+            if rs232.getTransactionResult():
+                print('get Transaction Result OK')
+            else:
+                print('get Transaction Result NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, 'E') or operator.eq(index, 'e'):
-        if rs232.cancelTransaction():
-            print('cancel Transaction OK')
-        else:
-            print('cancel Transaction NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, 'E') or operator.eq(index, 'e'):
+            if rs232.cancelTransaction():
+                print('cancel Transaction OK')
+            else:
+                print('cancel Transaction NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, 'F') or operator.eq(index, 'f'):
-        if rs232.getTransactionLog():
-            print('get TransactionLog OK')
-        else:
-            print('get TransactionLog NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, 'F') or operator.eq(index, 'f'):
+            if rs232.getTransactionLog():
+                print('get TransactionLog OK')
+            else:
+                print('get TransactionLog NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, '10'):
-        if rs232.clearTransactionLog():
-            print('clear TransactionLog OK')
-        else:
-            print('clear TransactionLog NOK')
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
+        if operator.eq(index, '10'):
+            if rs232.clearTransactionLog():
+                print('clear TransactionLog OK')
+            else:
+                print('clear TransactionLog NOK')
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
 
-    if operator.eq(index, '11'):
-        if rs232.close():
-            print('close OK')
-        else:
-            print('close NOK')
-
-    
-
-    rs232.close()
+        if operator.eq(index, '11'):
+            if rs232.close():
+                print('close OK')
+            else:
+                print('close NOK')
