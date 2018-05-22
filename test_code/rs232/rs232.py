@@ -953,6 +953,9 @@ if __name__ == "__main__":
         }
     }
 
+    CAPK_object = {}
+    transaction_start_object = {}
+
     print('********************************')
     print('*  0 ->  exit                                         ')
     print('*  1 ->  setConfig                                         ')
