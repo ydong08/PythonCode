@@ -332,14 +332,17 @@ class RS232(object):
         return bytes(data)
 
     def __check_recv_ack(self):
+        error_code = bytearray()
         retry_num = 0
         while retry_num < self.retry_num:
             data = self.__recv_data(self.recv_timeout)
             if data is None:
                 return False
-            if operator.eq(data, 'ACK'):  # ack
-                print('recv msg OK')
-                break
+            if self.__check_msg(data):
+                    error_code.extend(self.__get_data(data))  # ack
+                    if operator.eq(error_code.decode('utf-8'), '00'):
+                        print('recv msg OK')
+                        return True
             else:
                 retry_num += 1
                 print('recv msg NOK, retry %d send request' % retry_num)
@@ -951,30 +954,31 @@ if __name__ == "__main__":
     }
 
     print('********************************')
-    print('*  0 ->  setConfig                                         ')
-    print('*  1 ->  getConfig                                         ')
-    print('*  2 ->  setCAPK                                           ')
-    print('*  3 ->  getCAPK                                           ')
-    print('*  4 ->  deleteCAPK                                     ')
-    print('*  5 ->  getPollingModes                            ')
-    print('*  6 ->  reset                                                 ')
-    print('*  7 ->  getSerialNumber                            ')
-    print('*  8 ->  getFWVersion                                 ')
-    print('*  9 ->  getPaymentAppletVersion           ')
-    print('*  A ->  getVASAppletVersion                    ')
-    print('*  B ->  startTransaction                             ')
-    print('*  C ->  getTransactionStatus                    ')
-    print('*  D ->  getTransactionResult                    ')
-    print('*  E ->  cancelTransaction                         ')
-    print('*  F ->  getTransactionLog                         ')
-    print('* 10 ->  clearTransactionLog                    ')
-    print('* 11 ->  close                                               ')
+    print('*  0 ->  exit                                         ')
+    print('*  1 ->  setConfig                                         ')
+    print('*  2 ->  getConfig                                         ')
+    print('*  3 ->  setCAPK                                           ')
+    print('*  4 ->  getCAPK                                           ')
+    print('*  5 ->  deleteCAPK                                     ')
+    print('*  6 ->  getPollingModes                            ')
+    print('*  7 ->  reset                                                 ')
+    print('*  8 ->  getSerialNumber                            ')
+    print('*  9 ->  getFWVersion                                 ')
+    print('*  A ->  getPaymentAppletVersion           ')
+    print('*  B ->  getVASAppletVersion                    ')
+    print('*  C ->  startTransaction                             ')
+    print('*  D ->  getTransactionStatus                    ')
+    print('*  E ->  getTransactionResult                    ')
+    print('*  F ->  cancelTransaction                         ')
+    print('*  10 ->  getTransactionLog                         ')
+    print('* 11 ->  clearTransactionLog                    ')
+    print('* 12 ->  close                                               ')
     print('********************************')
     rs232 = RS232('COM4')
     while True:
         index = input('plz choose case: ')
         # setconfig
-        if operator.eq(index, '0'):
+        if operator.eq(index, '1'):
             if rs232.setConfig(reader_config_object):
                 print('set config OK')
             else:
@@ -984,7 +988,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
         # getconfig
-        if operator.eq(index, '1'):
+        if operator.eq(index, '2'):
             if rs232.setConfig(reader_config_object):
                 print('set config OK')
             else:
@@ -998,7 +1002,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
         # setCAPK
-        if operator.eq(index, '2'):
+        if operator.eq(index, '3'):
             if rs232.setCAPK(CAPK_object):
                 print('set CAPK OK')
             else:
@@ -1008,7 +1012,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
         # getCAPK
-        if operator.eq(index, '3'):
+        if operator.eq(index, '4'):
             if rs232.getCAPK():
                 print('get CAPK OK')
             else:
@@ -1018,7 +1022,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
         # deleteCAPK        
-        if operator.eq(index, '4'):
+        if operator.eq(index, '5'):
             if rs232.deleteCAPK():
                 print('delete CAPK OK')
             else:
@@ -1028,7 +1032,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
         # getPollingModes
-        if operator.eq(index, '5'):
+        if operator.eq(index, '6'):
             if rs232.getPollingModes():
                 print('get polling Modes OK')
             else:
@@ -1038,7 +1042,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, '6'):
+        if operator.eq(index, '7'):
             if rs232.reset():
                 print('reset OK')
             else:
@@ -1048,7 +1052,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, '7'):
+        if operator.eq(index, '8'):
             if rs232.getSerialNumber():
                 print('get SerialNumber OK')
             else:
@@ -1058,7 +1062,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, '8'):
+        if operator.eq(index, '9'):
             if rs232.getFWVersion():
                 print('get FWVersion OK')
             else:
@@ -1068,7 +1072,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, '9'):
+        if operator.eq(index, 'A') or operator.eq(index, 'a'):
             if rs232.getPaymentAppletVersion():
                 print('get PaymentAppletVersion OK')
             else:
@@ -1078,7 +1082,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, 'A') or operator.eq(index, 'a'):
+        if operator.eq(index, 'B') or operator.eq(index, 'b'):
             if rs232.getVASAppletVersion():
                 print('get VASAppletVersion OK')
             else:
@@ -1088,7 +1092,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, 'B') or operator.eq(index, 'b'):
+        if operator.eq(index, 'C') or operator.eq(index, 'c'):
             if rs232.startTransaction(transaction_start_object):
                 print('start Transaction OK')
             else:
@@ -1098,7 +1102,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, 'C') or operator.eq(index, 'c'):
+        if operator.eq(index, 'D') or operator.eq(index, 'd'):
             if rs232.getTransactionStatus():
                 print('get Transaction Status OK')
             else:
@@ -1108,7 +1112,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, 'D') or operator.eq(index, 'd'):
+        if operator.eq(index, 'E') or operator.eq(index, 'e'):
             if rs232.getTransactionResult():
                 print('get Transaction Result OK')
             else:
@@ -1118,7 +1122,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, 'E') or operator.eq(index, 'e'):
+        if operator.eq(index, 'F') or operator.eq(index, 'f'):
             if rs232.cancelTransaction():
                 print('cancel Transaction OK')
             else:
@@ -1128,7 +1132,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, 'F') or operator.eq(index, 'f'):
+        if operator.eq(index, '10'):
             if rs232.getTransactionLog():
                 print('get TransactionLog OK')
             else:
@@ -1138,7 +1142,7 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, '10'):
+        if operator.eq(index, '11'):
             if rs232.clearTransactionLog():
                 print('clear TransactionLog OK')
             else:
@@ -1148,8 +1152,11 @@ if __name__ == "__main__":
             else:
                 print('close NOK')
 
-        if operator.eq(index, '11'):
+        if operator.eq(index, '12'):
             if rs232.close():
                 print('close OK')
             else:
                 print('close NOK')
+
+        if operator.eq(index, '0'):
+            break
