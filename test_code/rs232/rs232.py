@@ -6,6 +6,7 @@ import binascii
 import operator
 import serial
 import json
+import py_compile
 import serial.tools.list_ports
 from serial.serialutil import *
 
@@ -231,6 +232,27 @@ class RS232(object):
             lrc_value ^= i
         return lrc_value
 
+    def __check_lrc(self, content):
+        lrc_value = 0
+        for i in content[:-1]:
+            lrc_value ^= i
+        if lrc_value == content[-1]:
+            return True
+        else:
+            return False
+
+    def __check_msg(self, content):
+        msg_len = content[4:5]*256 + content[5:6]
+        if msg_len == len(content[6:-2]):
+            data_len = content[11:12]*256 + content[12:13]
+            if data_len == len(content[13:-2]):
+                return __check_lrc(content[1:])
+        return False
+
+    def __get_data(self, content):
+        data = content[13:-2]
+        return data
+
     def __create_cmd(self, msg_type, content):
         """ construct POS cmd msg"""
         cmd = bytearray()
@@ -382,9 +404,10 @@ class RS232(object):
                 if data is None:
                     return None
                 if 0 < data.__len__():
-                    reader_config = json.loads(data)
-                    print('recv msg OK')
-                    break
+                    if self.__check_msg(data):
+                        reader_config = json.loads(self.__get_data(data))
+                        print('recv msg OK')
+                        break
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
@@ -404,20 +427,20 @@ class RS232(object):
                 if data is None:
                     return None
                 if 0 < data.__len__():
-                    capk_config = json.loads(data)
-                    if isinstance(capk_config, dict):
-                        for x in range(len(capk_config)):
-                            if isinstance(x, dict):
-                                tmp_tuple = tuple(x)
-                                capk_tuple += tmp_tuple
-                    print('recv msg OK')
-                    break
+                    if self.__check_msg(data):
+                        capk_config = json.loads(self.__get_data(data))
+                        if isinstance(capk_config, dict):
+                            for x in range(len(capk_config)):
+                                if isinstance(x, dict):
+                                    tmp_tuple = tuple(x)
+                                    capk_tuple += tmp_tuple
+                        print('recv msg OK')
+                        break
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
             else:
                 print("recv msg retry done, stop recv")
-
         return capk_tuple
 
     def setCAPK(self, CAPK_object):
@@ -433,14 +456,13 @@ class RS232(object):
             else:
                 max_send_len = left_len
 
-            if self.__send_data(global_msg_type['set_config'], reader_config[index:index+max_send_len]):
+            if self.__send_data(global_msg_type['set_config'], capk_config[index:index+max_send_len]):
                 # recv response
                 index += max_send_len
                 left_len -= max_send_len
             else:
                 print('send request msg NOK, stop')
                 break
-
         if 0 == left_len:
             print('send request msg[%d] OK' % data_len)
             return True
@@ -461,16 +483,44 @@ class RS232(object):
             print("recv msg retry done, stop recv")
             return False
 
-    def deleteCAPK(self):
+    def deleteCAPK(self, CAPK_object):
         """ delete CAPK """
-        if self.__send_data(global_msg_type['sel_capk'], None):
-            # recv response
-            if self.__check_recv_ack():
+        capk_config = bytes(json.dumps(CAPK_object), "utf-8")
+        left_len = len(capk_config)
+        max_send_len = 0
+        index = 0
+        self.__clear_cache()
+        while 0 < left_len:   #send segment
+            if self.__msg_len < left_len:
+                max_send_len = self.__msg_len
+            else:
+                max_send_len = left_len
+
+            if self.__send_data(global_msg_type['del_capk'], capk_config[index:index+max_send_len]):
+                # recv response
+                index += max_send_len
+                left_len -= max_send_len
+            else:
+                print('send request msg NOK, stop')
+                break
+        if 0 == left_len:
+            print('send request msg[%d] OK' % data_len)
+            return True
+        else:
+            return False
+
+        while retry_num < self.retry_num:
+            data = self.__recv_data(self.recv_timeout)
+            if data is None:
+                return False
+            if operator.eq(data, 'ACK'):  # ack
+                print('recv msg OK')
                 return True
             else:
-                return False
+                retry_num += 1
+                print('recv msg NOK, retry %d send request' % retry_num)
         else:
-            print('send request msg NOK, stop')
+            print("recv msg retry done, stop recv")
             return False
 
 
@@ -478,13 +528,23 @@ class RS232(object):
         """ get supported polling modes """
         if self.__send_data(global_msg_type['get_poll_mode'], None):
             # recv response
-            if self.__check_recv_ack():
-                return True
+            polling_mode = bytearray()
+            retry_num = 0
+            while retry_num < self.retry_num:
+                data = self.__recv_data(self.recv_timeout)
+                if data is None:
+                    return None
+                if 0 < data.__len__():
+                    if self.__check_msg(data):
+                        polling_mode.extend(self.__get_data(data))
+                        print('recv msg OK')
+                        return  polling_mode.decode('utf-8')
+                else:
+                    retry_num += 1
+                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                return False
-        else:
-            print('send request msg NOK, stop')
-            return False
+                print("recv msg retry done, stop recv")
+            return None
 
     def reset(self):
         """ reset or reboot terminal """
@@ -502,14 +562,17 @@ class RS232(object):
         """ get terminal serial number """
         if self.__send_data(global_msg_type['get_serial_num'], None):
             # recv response
+            serial_number = bytearray()
             retry_num = 0
             while retry_num < self.retry_num:
                 data = self.__recv_data(self.recv_timeout)
                 if data is None:
                     return None
                 if 0 < data.__len__():  # ack
-                    print('recv msg OK')
-                    return data
+                    if self.__check_msg(data):
+                        serial_number.extend(self.__get_data(data))
+                        print('recv msg OK')
+                        return serial_number.decode('utf-8')
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
@@ -524,14 +587,17 @@ class RS232(object):
         """ FW version installed on terminal """
         if self.__send_data(global_msg_type['get_fw_version'], None):
             # recv response
+            fw_version = bytearray()
             retry_num = 0
             while retry_num < self.retry_num:
                 data = self.__recv_data(self.recv_timeout)
                 if data is None:
                     return None
                 if 0 < data.__len__():  # ack
-                    print('recv msg OK')
-                    return data
+                    if self.__check_msg(data):
+                        fw_version.extend(self.__get_data(data))
+                        print('recv msg OK')
+                        return fw_version.decode('utf-8')
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
@@ -546,14 +612,17 @@ class RS232(object):
         """ return payment applet version installed on reader """
         if self.__send_data(global_msg_type['get_payment_version'], None):
             # recv response
+            payment_version = bytearray()
             retry_num = 0
             while retry_num < self.retry_num:
                 data = self.__recv_data(self.recv_timeout)
                 if data is None:
                     return None
                 if 0 < data.__len__():  # ack
-                    print('recv msg OK')
-                    return data
+                    if self.__check_msg(data):
+                        payment_version.extend(self.__get_data(data))
+                        print('recv msg OK')
+                        return payment_version.decode('utf-8')
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
@@ -568,14 +637,17 @@ class RS232(object):
         """ return VAS applet version installed on reader """
         if self.__send_data(global_msg_type['get_vas_version'], None):
             # recv response
+            vas_version = bytearray()
             retry_num = 0
             while retry_num < self.retry_num:
                 data = self.__recv_data(self.recv_timeout)
                 if data is None:
                     return None
                 if 0 < data.__len__():  # ack
-                    print('recv msg OK')
-                    return data
+                    if self.__check_msg(data):
+                        vas_version.extend(self.__get_data(data))
+                        print('recv msg OK')
+                        return vas_version.decode('utf-8')
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
@@ -638,9 +710,10 @@ class RS232(object):
                 if data is None:
                     return None
                 if 0 < data.__len__():
-                    trans_status = json.loads(data)
-                    print('recv msg OK')
-                    break
+                    if self.__check_msg(data):
+                        trans_status = json.loads(self.__get_data(data))
+                        print('recv msg OK')
+                        break
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
@@ -659,9 +732,10 @@ class RS232(object):
                 if data is None:
                     return None
                 if 0 < data.__len__():
-                    trans_result = json.loads(data)
-                    print('recv msg OK')
-                    break
+                    if self.__check_msg(data):
+                        trans_result = json.loads(self.__get_data(data))
+                        print('recv msg OK')
+                        break
                 else:
                     retry_num += 1
                     print('recv msg NOK, retry %d send request' % retry_num)
@@ -693,7 +767,8 @@ class RS232(object):
                 if data is None:
                     return None
                 if 0 < data.__len__():
-                    trans_log = json.loads(data)
+                    if self.__check_msg(data):
+                        trans_log = json.loads(self.__get_data(data))
                     print('recv msg OK')
                     break
                 else:
@@ -734,9 +809,7 @@ class RS232(object):
             print('send request msg NOK, stop')
             return False
 
-if __name__ == "__main__":
-    #test_com()
-    #test data
+
     """
     reader_conﬁg_object    #python dictionary of key value pairs
     {
@@ -855,6 +928,10 @@ if __name__ == "__main__":
     }
         
     """
+
+if __name__ == "__main__":
+    #test_com()
+    #test data
     reader_config_object = {
     "RestoreResult": 12345678,
     "TransactionLogging": True,
@@ -870,12 +947,212 @@ if __name__ == "__main__":
             'url': "",
             'filter': ""
         }]
+        }
     }
-}
 
+    print('********************************')
+    print('*  0 ->  setConfig                                         ')
+    print('*  1 ->  getConfig                                         ')
+    print('*  2 ->  setCAPK                                           ')
+    print('*  3 ->  getCAPK                                           ')
+    print('*  4 ->  deleteCAPK                                     ')
+    print('*  5 ->  getPollingModes                            ')
+    print('*  6 ->  reset                                                 ')
+    print('*  7 ->  getSerialNumber                            ')
+    print('*  8 ->  getFWVersion                                 ')
+    print('*  9 ->  getPaymentAppletVersion           ')
+    print('*  A ->  getVASAppletVersion                    ')
+    print('*  B ->  startTransaction                             ')
+    print('*  C ->  getTransactionStatus                    ')
+    print('*  D ->  getTransactionResult                    ')
+    print('*  E ->  cancelTransaction                         ')
+    print('*  F ->  getTransactionLog                         ')
+    print('* 10 ->  clearTransactionLog                    ')
+    print('* 11 ->  close                                               ')
+    print('********************************')
     rs232 = RS232('COM4')
-    if rs232.setConfig(reader_config_object):
-        print('set config OK')
-    else:
-        print('set config NOK')
+    index = input('plz chose case: ')
+    # setconfig
+    if operator.eq(index, '0'):
+        if rs232.setConfig(reader_config_object):
+            print('set config OK')
+        else:
+            print('set config NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+    # getconfig
+    if operator.eq(index, '1'):
+        if rs232.setConfig(reader_config_object):
+            print('set config OK')
+        else:
+            print('set config NOK')
+        if rs232.getConfig():
+            print('get config OK')
+        else:
+            print('get config NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+    # setCAPK
+    if operator.eq(index, '2'):
+        if rs232.setCAPK(CAPK_object):
+            print('set CAPK OK')
+        else:
+            print('set CAPK NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+    # getCAPK
+    if operator.eq(index, '3'):
+        if rs232.getCAPK():
+            print('get CAPK OK')
+        else:
+            print('get CAPK NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+    # deleteCAPK        
+    if operator.eq(index, '4'):
+        if rs232.deleteCAPK():
+            print('delete CAPK OK')
+        else:
+            print('delete CAPK NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+    # getPollingModes
+    if operator.eq(index, '5'):
+        if rs232.getPollingModes():
+            print('get polling Modes OK')
+        else:
+            print('get polling Modes NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, '6'):
+        if rs232.reset():
+            print('reset OK')
+        else:
+            print('reset NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, '7'):
+        if rs232.getSerialNumber():
+            print('get SerialNumber OK')
+        else:
+            print('get SerialNumber NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, '8'):
+        if rs232.getFWVersion():
+            print('get FWVersion OK')
+        else:
+            print('get FWVersion NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, '9'):
+        if rs232.getPaymentAppletVersion():
+            print('get PaymentAppletVersion OK')
+        else:
+            print('get PaymentAppletVersion NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, 'A') or operator.eq(index, 'a'):
+        if rs232.getVASAppletVersion():
+            print('get VASAppletVersion OK')
+        else:
+            print('get VASAppletVersion NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, 'B') or operator.eq(index, 'b'):
+        if rs232.startTransaction(transaction_start_object):
+            print('start Transaction OK')
+        else:
+            print('start Transaction NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, 'C') or operator.eq(index, 'c'):
+        if rs232.getTransactionStatus():
+            print('get Transaction Status OK')
+        else:
+            print('get Transaction Status NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, 'D') or operator.eq(index, 'd'):
+        if rs232.getTransactionResult():
+            print('get Transaction Result OK')
+        else:
+            print('get Transaction Result NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, 'E') or operator.eq(index, 'e'):
+        if rs232.cancelTransaction():
+            print('cancel Transaction OK')
+        else:
+            print('cancel Transaction NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, 'F') or operator.eq(index, 'f'):
+        if rs232.getTransactionLog():
+            print('get TransactionLog OK')
+        else:
+            print('get TransactionLog NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, '10'):
+        if rs232.clearTransactionLog():
+            print('clear TransactionLog OK')
+        else:
+            print('clear TransactionLog NOK')
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    if operator.eq(index, '11'):
+        if rs232.close():
+            print('close OK')
+        else:
+            print('close NOK')
+
+    
+
     rs232.close()
