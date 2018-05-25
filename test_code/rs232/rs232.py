@@ -345,9 +345,8 @@ class RS232(object):
                         return True
             else:
                 retry_num += 1
-                print('recv msg NOK, retry %d send request' % retry_num)
         else:
-            print("recv msg retry done, stop recv")
+            print("recv msg %d retry done, stop recv" % retry_num)
             return False
 
     def __clear_cache(self):
@@ -391,9 +390,8 @@ class RS232(object):
                 return True
             else:
                 retry_num += 1
-                print('recv msg NOK, retry %d send request' % retry_num)
         else:
-            print("recv msg retry done, stop recv")
+            print("recv msg %d retry done, stop recv" % retry_num)
             return False
 
     def getConfig(self):
@@ -413,9 +411,8 @@ class RS232(object):
                         break
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
         return reader_config
 
     #@property
@@ -441,15 +438,14 @@ class RS232(object):
                         break
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
         return capk_tuple
 
     def setCAPK(self, CAPK_object):
         """ set CAPK """
         capk_config = bytes(json.dumps(CAPK_object), "utf-8")
-        left_len = len(capk_config)
+        data_len = left_len = len(capk_config)
         max_send_len = 0
         index = 0
         self.__clear_cache()
@@ -481,15 +477,14 @@ class RS232(object):
                 return True
             else:
                 retry_num += 1
-                print('recv msg NOK, retry %d send request' % retry_num)
         else:
-            print("recv msg retry done, stop recv")
+            print("recv msg %d retry done, stop recv" % retry_num)
             return False
 
     def deleteCAPK(self, CAPK_object):
         """ delete CAPK """
         capk_config = bytes(json.dumps(CAPK_object), "utf-8")
-        left_len = len(capk_config)
+        data_len = left_len = len(capk_config)
         max_send_len = 0
         index = 0
         self.__clear_cache()
@@ -521,9 +516,8 @@ class RS232(object):
                 return True
             else:
                 retry_num += 1
-                print('recv msg NOK, retry %d send request' % retry_num)
         else:
-            print("recv msg retry done, stop recv")
+            print("recv msg %d retry done, stop recv" % retry_num)
             return False
 
 
@@ -544,9 +538,8 @@ class RS232(object):
                         return  polling_mode.decode('utf-8')
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
             return None
 
     def reset(self):
@@ -578,9 +571,8 @@ class RS232(object):
                         return serial_number.decode('utf-8')
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
                 return None
         else:
             print('send request msg NOK, stop')
@@ -603,9 +595,8 @@ class RS232(object):
                         return fw_version.decode('utf-8')
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
                 return None
         else:
             print('send request msg NOK, stop')
@@ -628,9 +619,8 @@ class RS232(object):
                         return payment_version.decode('utf-8')
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
                 return None
         else:
             print('send request msg NOK, stop')
@@ -653,9 +643,8 @@ class RS232(object):
                         return vas_version.decode('utf-8')
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
                 return None
         else:
             print('send request msg NOK, stop')
@@ -664,7 +653,7 @@ class RS232(object):
     def startTransaction(self, transaction_start_object):
         """ put terminal in vas or payment mode """
         trans_config = bytes(json.dumps(transaction_start_object), "utf-8")
-        left_len = len(trans_config)
+        data_len = left_len = len(trans_config)
         max_send_len = 0
         index = 0
         self.__clear_cache()
@@ -674,7 +663,7 @@ class RS232(object):
             else:
                 max_send_len = left_len
 
-            if self.__send_data(global_msg_type['set_config'], reader_config[index:index+max_send_len]):
+            if self.__send_data(global_msg_type['start_transaction'], trans_config[index:index+max_send_len]):
                 # recv response
                 index += max_send_len
                 left_len -= max_send_len
@@ -697,9 +686,8 @@ class RS232(object):
                 return True
             else:
                 retry_num += 1
-                print('recv msg NOK, retry %d send request' % retry_num)
         else:
-            print("recv msg retry done, stop recv")
+            print("recv msg %d retry done, stop recv" % retry_num)
             return False
 
     def getTransactionStatus(self):
@@ -719,9 +707,8 @@ class RS232(object):
                         break
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
         return trans_status
 
     def getTransactionResult(self):
@@ -741,9 +728,8 @@ class RS232(object):
                         break
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
         return trans_result
 
     def cancelTransaction(self):
@@ -776,9 +762,8 @@ class RS232(object):
                     break
                 else:
                     retry_num += 1
-                    print('recv msg NOK, retry %d send request' % retry_num)
             else:
-                print("recv msg retry done, stop recv")
+                print("recv msg %d retry done, stop recv" % retry_num)
         return trans_log
 
     def clearTransactionLog(self):
@@ -973,12 +958,13 @@ if __name__ == "__main__":
     print('*  D ->  getTransactionStatus                    ')
     print('*  E ->  getTransactionResult                    ')
     print('*  F ->  cancelTransaction                         ')
-    print('*  10 ->  getTransactionLog                         ')
+    print('* 10 ->  getTransactionLog                         ')
     print('* 11 ->  clearTransactionLog                    ')
     print('* 12 ->  close                                               ')
     print('********************************')
     rs232 = RS232('COM4')
     while True:
+        print(' ')        
         index = input('plz choose case: ')
         # setconfig
         if operator.eq(index, '1'):
@@ -990,6 +976,7 @@ if __name__ == "__main__":
                 print('close OK')
             else:
                 print('close NOK')
+
         # getconfig
         if operator.eq(index, '2'):
             if rs232.setConfig(reader_config_object):
@@ -1004,6 +991,7 @@ if __name__ == "__main__":
                 print('close OK')
             else:
                 print('close NOK')
+
         # setCAPK
         if operator.eq(index, '3'):
             if rs232.setCAPK(CAPK_object):
@@ -1014,6 +1002,7 @@ if __name__ == "__main__":
                 print('close OK')
             else:
                 print('close NOK')
+
         # getCAPK
         if operator.eq(index, '4'):
             if rs232.getCAPK():
@@ -1024,9 +1013,10 @@ if __name__ == "__main__":
                 print('close OK')
             else:
                 print('close NOK')
+
         # deleteCAPK        
         if operator.eq(index, '5'):
-            if rs232.deleteCAPK():
+            if rs232.deleteCAPK(CAPK_object):
                 print('delete CAPK OK')
             else:
                 print('delete CAPK NOK')
@@ -1034,6 +1024,7 @@ if __name__ == "__main__":
                 print('close OK')
             else:
                 print('close NOK')
+
         # getPollingModes
         if operator.eq(index, '6'):
             if rs232.getPollingModes():
