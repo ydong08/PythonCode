@@ -1157,19 +1157,20 @@ def test_interface():
         if operator.eq(index, '0'):
             break
 
-def check_serial_module():
+def check_module(modules):
     installed_modules = sys.modules.keys()
     module_installation = False
-    for mod in installed_modules:
-        if operator.eq(mod, 'serial'):
-            print(mod + 'already installed')
-            module_installation = True
-            break
-    if not module_installation:
-        os.system('pip install ' + 'serial')
+    for m in modules:
+        for mod in installed_modules:
+            if operator.eq(mod, m):
+                print(mod + 'already installed')
+                module_installation = True
+                break
+        if not module_installation:
+            os.system('pip install ' + m)
 
 if __name__ == "__main__":
     #test_com()
-    check_serial_module()
-   # test_interface()
+    check_module(['serial',])
+    test_interface()
     
