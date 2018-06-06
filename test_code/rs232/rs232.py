@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # _*_ coding:utf-8 _*_
 
+import re
 import sys
 import os
 import time
@@ -19,32 +20,35 @@ operate on windows COM
 
 def test_com():
     "test windows COM recv and send data"
+    port = []
     plist = list(serial.tools.list_ports.comports())
-    if len(plist) <= 0:
+    for p in plist:
+        pcom = list(p)
+        device = pcom[0]
+        name = pcom[1]
+        info = pcom[2]
+        print('serial_device: ' + device)
+        print('serial_name: ' + name)
+        print('serial_info: ' + info)
+        if re.search(r'USB-to-Serial', name) is not None:
+            port.append(device)
+            print(port)
+
+    if len(port) <= 0:
         print("not find windows serial port")
-    else:
-        for i in plist:
-            print(i[0])
-            print(i[1])
-            print(i[2])
-            print('\n')
+        return False
 
-        x = list(plist[0])
-        serial_device =x[0]
-        serial_name = x[1]
-        serial_info = x[2]
-        print('serial_device: ' + serial_device)
-        print('serial_name: ' + serial_name)
-        print('serial_info: ' + serial_info)
-
-        serial_fd = serial.Serial(serial_device, 9600, 8, 'N', 1, 10)
+    loop_num = 100
+    if 1 == len(port):
+        serial_fd = serial.Serial(port[0], 9600, 8, 'N', 1, 10)
         if serial_fd.is_open:
             print('serial already open OK')
-            while True:
-                serial_fd.write("send")
+            while loop_num > 0:
+                serial_fd.write("send".encode('utf-8'))
                 time.sleep(1)
                 data = serial_fd.read(7)
                 print(data)
+                loop_num -= 1
         else:
             print("COM open NOK")
 
@@ -89,23 +93,29 @@ class RS232(object):
         self.retry_num = 3
 
         port_list = list(serial.tools.list_ports.comports(True))
-        for port in port_list:
-            #print(devName + '  ' + port[0])
-            if operator.eq(port[0], devName):
-                try:
-                    self.instance = serial.Serial(self.port, self.baud_rate,
-                                                       self.byte_size, self.parity, self.stop_bits, self.serial_timeout)
-                except SerialException as e:
-                    print('exception occur: %s' % e)
-                    break
-                else:
-                    if self.instance is not None:
-                        if self.instance.is_open:
-                            self.com_open = True
-                            print('create and open COM on ' + self.port)
-                            break
+        port = []
+        # loop all com in system
+        for p in port_list:
+            pcom = list(p)
+            device = pcom[0]
+            name = pcom[1]
+            if re.search(r'USB-to-Serial', name) is not None:
+                port.append(device)
+        # if only one serial com, set this default, otherwise, set devName
+        if 1 == len(port):
+            self.port = port[0]
+            try:
+                self.instance = serial.Serial(self.port, self.baud_rate,
+                                                    self.byte_size, self.parity, self.stop_bits, self.serial_timeout)
+            except SerialException as e:
+                print('exception occur: %s' % e)
             else:
-                print("assigned port NOT matched in system")
+                if self.instance is not None:
+                    if self.instance.is_open:
+                        self.com_open = True
+                        print('create and open COM on ' + self.port)
+        else:
+            print("assigned port NOT matched in system")
 
     def __calc_lrc(self, content):
         lrc_value = 0
@@ -1163,7 +1173,7 @@ def check_module(modules):
     for m in modules:
         for mod in installed_modules:
             if operator.eq(mod, m):
-                print(mod + 'already installed')
+                print(mod + ' module already installed')
                 module_installation = True
                 break
         if not module_installation:
