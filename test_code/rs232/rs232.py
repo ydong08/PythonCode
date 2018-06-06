@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 # _*_ coding:utf-8 _*_
 
+import sys
+import os
 import time
 import binascii
 import operator
@@ -14,131 +16,7 @@ from serial.serialutil import *
 operate on windows COM 
 """
 
-"""
-reader_conﬁg_object
-{
-    "RestoreDefault":h,    
-    
-    "TransactionLogging":boolean,   
-    "TransactionLogSize":h,   
-    "TransCurrencyCode":h,   
-    "TransCurrencyExponent":h, 
-    "TransType":h,   
-    
-    "AmountAuthorized":h,  
-    "AmountOther":h,   
-    "TerminalCountryCode":h,   
-    "TerminalFloorLimit":h,   
-    "TerminalCapabilities":h,   
-    "TerminalType":h,   
-    "AdditionalTermCapabilities":h,   
-    "TerminalCTLSFloorLimit":h, 
-    "VisaTTQ":h,   
-    "Timeout":time value in ms, 
-     
-    "mChipMobileSupport":h,   
-    "ExpressPayTerminalCapabilities":h, 
-    "TerminalCTLSTransLimit":h, 
-    "CVMRequiredLimit":h,   
-    "TerminalActionCodeOnline":h,   
-    "TerminalActionCodeDefault":h,   
-    "TerminalActionCodeDenial":h,   
-    "pollingMode":h,   
-    "pollingTechnology":h,   
-    …
-    “VAS”: {
-    'Merchants' : [
-    {
-        "merchantID" : string
-        "url" : string
-        "ﬁlter" : byte string
-    },
-    …
-    ]
-    }
-}
 
-
-
-
-transaction_start_object 
-{
-"VASTerminalMode":h,   
-"ProtocolMode":h,   
-"AmountAuthorized":h,   
-"Timeout":time value in ms   
-"TransDate":h,    
-"TransTime":time value in HHMMSS, 
-"TransType":h,   
-"TransCurrencyCode":h,  
-"TerminalCountryCode":h,   
-"AccountType":int,   
-"AmountOther":h,    
-}
-
-
-vas_result_object 
-{
-"token" : h
-"data' : h
-"merchantID" : string
-"result code" : int
-}
-
-
-
-CAPK_object
-{
-    "RID":h,
-    "CAPKIndex":h,
-    "CAHashAlgoIndicator":h,
-    "CAPKAlgoIndicator":h,
-    "CAPKModulus":h,
-    "CAPKExponent":h,
-    "CAPKCheckSum":h,
-}
-
-
-transaction_result_object 
-{
-    "VASResults" : [
-    (one for each VAS request in transaction)
-    
-    vas_result_object_1,
-    vas_result_object_2,
-    …
-    vas_result_object_n
-    ]
-    "PaymentResult" : {
-    "rawdata" : h,
-    "track 1": h,
-    "track 2": h,
-    … some basic values
-    }
-}
-
-
-transaction_status_object    
-{
-    transactionStatus:h,   
-VAS and Payment specs
-}
-
-
-
-logObject 
-{
-    getLog:string,   
-    clearLog:boolean,    
-}
-
-
-server_response_object 
-{
-    "Online Authorization/Results":string,
-}
-
-"""
 def test_com():
     "test windows COM recv and send data"
     plist = list(serial.tools.list_ports.comports())
@@ -169,6 +47,9 @@ def test_com():
                 print(data)
         else:
             print("COM open NOK")
+
+
+
 
 global_msg_type = {'set_config':0x01,
                                 'get_config':0x02,
@@ -915,10 +796,131 @@ class RS232(object):
         "Online Authorization/Results":string,# For simulating a response from the network
     }
         
-    """
+reader_conﬁg_object
+{
+    "RestoreDefault":h,    
+    
+    "TransactionLogging":boolean,   
+    "TransactionLogSize":h,   
+    "TransCurrencyCode":h,   
+    "TransCurrencyExponent":h, 
+    "TransType":h,   
+    
+    "AmountAuthorized":h,  
+    "AmountOther":h,   
+    "TerminalCountryCode":h,   
+    "TerminalFloorLimit":h,   
+    "TerminalCapabilities":h,   
+    "TerminalType":h,   
+    "AdditionalTermCapabilities":h,   
+    "TerminalCTLSFloorLimit":h, 
+    "VisaTTQ":h,   
+    "Timeout":time value in ms, 
+     
+    "mChipMobileSupport":h,   
+    "ExpressPayTerminalCapabilities":h, 
+    "TerminalCTLSTransLimit":h, 
+    "CVMRequiredLimit":h,   
+    "TerminalActionCodeOnline":h,   
+    "TerminalActionCodeDefault":h,   
+    "TerminalActionCodeDenial":h,   
+    "pollingMode":h,   
+    "pollingTechnology":h,   
+    …
+    “VAS”: {
+    'Merchants' : [
+    {
+        "merchantID" : string
+        "url" : string
+        "ﬁlter" : byte string
+    },
+    …
+    ]
+    }
+}
 
-if __name__ == "__main__":
-    #test_com()
+
+
+
+transaction_start_object 
+{
+"VASTerminalMode":h,   
+"ProtocolMode":h,   
+"AmountAuthorized":h,   
+"Timeout":time value in ms   
+"TransDate":h,    
+"TransTime":time value in HHMMSS, 
+"TransType":h,   
+"TransCurrencyCode":h,  
+"TerminalCountryCode":h,   
+"AccountType":int,   
+"AmountOther":h,    
+}
+
+
+vas_result_object 
+{
+"token" : h
+"data' : h
+"merchantID" : string
+"result code" : int
+}
+
+
+
+CAPK_object
+{
+    "RID":h,
+    "CAPKIndex":h,
+    "CAHashAlgoIndicator":h,
+    "CAPKAlgoIndicator":h,
+    "CAPKModulus":h,
+    "CAPKExponent":h,
+    "CAPKCheckSum":h,
+}
+
+
+transaction_result_object 
+{
+    "VASResults" : [
+    (one for each VAS request in transaction)
+    
+    vas_result_object_1,
+    vas_result_object_2,
+    …
+    vas_result_object_n
+    ]
+    "PaymentResult" : {
+    "rawdata" : h,
+    "track 1": h,
+    "track 2": h,
+    … some basic values
+    }
+}
+
+
+transaction_status_object    
+{
+    transactionStatus:h,   
+VAS and Payment specs
+}
+
+
+
+logObject 
+{
+    getLog:string,   
+    clearLog:boolean,    
+}
+
+
+server_response_object 
+{
+    "Online Authorization/Results":string,
+}
+
+"""
+def test_interface():
     #test data
     reader_config_object = {
     "RestoreResult": 12345678,
@@ -1154,3 +1156,20 @@ if __name__ == "__main__":
 
         if operator.eq(index, '0'):
             break
+
+def check_serial_module():
+    installed_modules = sys.modules.keys()
+    module_installation = False
+    for mod in installed_modules:
+        if operator.eq(mod, 'serial'):
+            print(mod + 'already installed')
+            module_installation = True
+            break
+    if not module_installation:
+        os.system('pip install ' + 'serial')
+
+if __name__ == "__main__":
+    #test_com()
+    check_serial_module()
+   # test_interface()
+    
