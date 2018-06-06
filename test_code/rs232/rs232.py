@@ -194,7 +194,6 @@ class RS232(object):
                 max_send_len = self.__msg_len
             else:
                 max_send_len = left_len
-
             try:
                 send_len = self.instance.write(send_data[index:index+max_send_len])
             except TypeError as e:
@@ -203,7 +202,6 @@ class RS232(object):
             else:
                 index += send_len
                 left_len -= send_len
-                #print("send len: %d" % send_len)
 
         # check send result
         if 0 == left_len:
