@@ -2,16 +2,13 @@
 # _*_ coding:utf-8 _*_
 
 import re
-import sys
 import os
 import time
-import binascii
 import operator
 import serial
 import json
-import py_compile
 import serial.tools.list_ports
-from serial.serialutil import *
+#from serial.serialutil import *
 
 """
 operate on windows COM 
