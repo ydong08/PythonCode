@@ -1171,17 +1171,12 @@ def test_interface():
 
 def check_modules(modules):
     #installed_modules = sys.modules.keys()
-    installed_modules = os.system("pip freeze")
-    module_installation = False
+    installed_modules =  os.popen("pip freeze").read()
     for chk_mod in modules:
-        for ins_mod in installed_modules:
-            # if operator.eq(mod, m):
-            m = re.match(chk_mod, ins_mod, 0)
-            if m is not None:
-                print(mod + ' module already installed')
-                module_installation = True
-                break
-        if not module_installation:
+        m = re.search(chk_mod, installed_modules, 0)
+        if m is not None:
+            print(chk_mod + ' module already installed')
+        else:
             os.system('pip install ' + chk_mod)
 
 if __name__ == "__main__":
