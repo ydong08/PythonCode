@@ -55,24 +55,24 @@ def test_com():
 
 
 
-global_msg_type = {'set_config':0x01,
-                                'get_config':0x02,
-                                'set_capk': 0x03,
-                                'get_capk': 0x04,
-                                'del_capk': 0x05,
-                                'get_poll_mode': 0x06,
-                                'reset': 0x07,
-                                'get_serial_num': 0x08,
-                                'get_fw_version': 0x09,
-                                'get_payment_version': 0x0A,
-                                'get_vas_version': 0x0B,
-                                'start_transaction': 0x0C,
-                                'get_trans_status': 0x0D,
-                                'get_trans_result': 0x0E,
-                                'cancel_transaction': 0x0F,
-                                'get_trans_log': 0x10,
-                                'clear_trans_log': 0x11,
-                                'close': 0x12
+global_msg_type = {'set_config':0xE0,
+                                'get_config':0xE1,
+                                'set_capk': 0xE2,
+                                'get_capk': 0xE3,
+                                'del_capk': 0xE4,
+                                'get_poll_mode': 0xE5,
+                                'reset': 0xE6,
+                                'get_serial_num': 0xE7,
+                                'get_fw_version': 0xE8,
+                                'get_payment_version': 0xE9,
+                                'get_vas_version': 0xEA,
+                                'start_transaction': 0xEB,
+                                'get_trans_status': 0xEC,
+                                'get_trans_result': 0xED,
+                                'cancel_transaction': 0xEE,
+                                'get_trans_log': 0xEF,
+                                'clear_trans_log': 0xF0,
+                                'close': 0xF1
                    }
 class RS232(object):
     """
@@ -156,6 +156,8 @@ class RS232(object):
         cmd.append(0x00)   #MTI, Message Type Indicator
         if content is not None:
             content_len = len(content) + 6  # add ETX & LRC
+        else:
+            content_len = 6  # add ETX & LRC
         msg_len = int(content_len//256)
         cmd.extend(msg_len.to_bytes(1, byteorder='big'))   #MSB Len
         msg_len = int(content_len % 256)
@@ -168,6 +170,8 @@ class RS232(object):
         cmd.append(0x00)  # P2
         if content is not None:
             content_len = len(content)
+        else:
+            content_len = 0  # add ETX & LRC
         msg_len = int(content_len // 256)
         cmd.extend(msg_len.to_bytes(1, byteorder='big'))  # MSB Len
         msg_len = int(content_len % 256)
@@ -1165,20 +1169,23 @@ def test_interface():
         if operator.eq(index, '0'):
             break
 
-def check_module(modules):
-    installed_modules = sys.modules.keys()
+def check_modules(modules):
+    #installed_modules = sys.modules.keys()
+    installed_modules = os.system("pip freeze")
     module_installation = False
-    for m in modules:
-        for mod in installed_modules:
-            if operator.eq(mod, m):
+    for chk_mod in modules:
+        for ins_mod in installed_modules:
+            # if operator.eq(mod, m):
+            m = re.match(chk_mod, ins_mod, 0)
+            if m is not None:
                 print(mod + ' module already installed')
                 module_installation = True
                 break
         if not module_installation:
-            os.system('pip install ' + m)
+            os.system('pip install ' + chk_mod)
 
 if __name__ == "__main__":
     #test_com()
-    check_module(['serial',])
+    check_modules(['pyserial',])
     test_interface()
     
