@@ -55,24 +55,24 @@ def test_com():
 
 
 
-global_msg_type = {'set_config':0xE0,
-                                'get_config':0xE1,
-                                'set_capk': 0xE2,
-                                'get_capk': 0xE3,
-                                'del_capk': 0xE4,
-                                'get_poll_mode': 0xE5,
-                                'reset': 0xE6,
-                                'get_serial_num': 0xE7,
-                                'get_fw_version': 0xE8,
-                                'get_payment_version': 0xE9,
-                                'get_vas_version': 0xEA,
-                                'start_transaction': 0xEB,
-                                'get_trans_status': 0xEC,
-                                'get_trans_result': 0xED,
-                                'cancel_transaction': 0xEE,
-                                'get_trans_log': 0xEF,
-                                'clear_trans_log': 0xF0,
-                                'close': 0xF1
+global_msg_type = {'set_config':0xE1,
+                                'get_config':0xE2,
+                                'set_capk': 0xE3,
+                                'get_capk': 0xE4,
+                                'del_capk': 0xE5,
+                                'get_poll_mode': 0xE6,
+                                'reset': 0xE7,
+                                'get_serial_num': 0xE8,
+                                'get_fw_version': 0xE9,
+                                'get_payment_version': 0xEA,
+                                'get_vas_version': 0xEB,
+                                'start_transaction': 0xEC,
+                                'get_trans_status': 0xED,
+                                'get_trans_result': 0xEE,
+                                'cancel_transaction': 0xEF,
+                                'get_trans_log': 0xF0,
+                                'clear_trans_log': 0xF1,
+                                'close': 0xF2
                    }
 class RS232(object):
     """
