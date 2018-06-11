@@ -49,9 +49,6 @@ def test_com():
         else:
             print("COM open NOK")
 
-
-
-
 global_msg_type = {'set_config':0xE1,
                                 'get_config':0xE2,
                                 'set_capk': 0xE3,
@@ -230,7 +227,7 @@ class RS232(object):
                 return False
             if self.__check_msg(data):
                     error_code.extend(self.__get_data(data))  # ack
-                    if operator.eq(error_code.decode('utf-8'), '00'):
+                    if operator.eq(error_code.decode('utf-8'), '06'):
                         print('recv msg OK')
                         return True
             else:
@@ -746,7 +743,6 @@ class RS232(object):
         "AmountOther":h,    # Secondary amt associated with the transaction representing a cashback amt
     }
     
-    
     vas_result_object #python dictionary of key value pairs
     {
         'token' : h
@@ -766,7 +762,6 @@ class RS232(object):
         "CAPKCheckSum":h,
     }
     
-    
     transaction_result_object #python dictionary of key value pairs
     {
         "VASResults" : [
@@ -784,7 +779,6 @@ class RS232(object):
         … some basic values
         }
     }
-    
     
     transaction_status_object    #python dictionary of key value pairs
     {
@@ -848,9 +842,6 @@ reader_conﬁg_object
     }
 }
 
-
-
-
 transaction_start_object 
 {
 "VASTerminalMode":h,   
@@ -866,7 +857,6 @@ transaction_start_object
 "AmountOther":h,    
 }
 
-
 vas_result_object 
 {
 "token" : h
@@ -874,8 +864,6 @@ vas_result_object
 "merchantID" : string
 "result code" : int
 }
-
-
 
 CAPK_object
 {
@@ -887,7 +875,6 @@ CAPK_object
     "CAPKExponent":h,
     "CAPKCheckSum":h,
 }
-
 
 transaction_result_object 
 {
@@ -907,21 +894,17 @@ transaction_result_object
     }
 }
 
-
 transaction_status_object    
 {
     transactionStatus:h,   
 VAS and Payment specs
 }
 
-
-
 logObject 
 {
     getLog:string,   
     clearLog:boolean,    
 }
-
 
 server_response_object 
 {
