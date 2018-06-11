@@ -1152,6 +1152,7 @@ def test_interface():
 def check_modules(modules):
     #installed_modules = sys.modules.keys()
     #installed_modules = os.spawn("pip freeze")
+    #fin, fout = popen2.popen2("sort")
     installed_modules =  os.popen("pip freeze").read()
     for chk_mod in modules:
         m = re.search(chk_mod, installed_modules, 0)
