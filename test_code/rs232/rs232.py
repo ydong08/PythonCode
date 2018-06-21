@@ -634,23 +634,21 @@ class RS232(object):
     def getTransactionLog(self):
         """ return logObject which consist of a tuple of byte strings for each apdu
          logged duringvas or/ and payment transaction """
+        data = bytearray()
+        tmp_data = bytearray()
         trans_log = {}
+        trans_log_flag = 0
         self.__clear_cache()
         if self.__send_data(global_msg_type['get_trans_log'], None):
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():
-                    if self.__check_msg(data):
-                        trans_log = json.loads(self.__get_data(data))
-                    print('recv msg OK')
+            while True:
+                if 0 < self.instance.inWaiting():
+                    data.extend(self.instance.read())
+                if operator.eq(data[-3:-2], 0xFF):
                     break
-                else:
-                    retry_num += 1
-            else:
-                print("recv msg %d retry done, stop recv" % retry_num)
+                continue
+        if self.__check_msg(data):
+            tmp_data = self.__get_data(data)
+            trans_log = {tmp_data[0:-1], tmp_data[-1:]}
         return trans_log
 
     def clearTransactionLog(self):
