@@ -931,7 +931,10 @@ def test_interface():
     }
 
     CAPK_object = {}
-    transaction_start_object = {}
+    transaction_start_object = {
+    "VASTerminalMode": 0x01,
+    "ProtocolMode": 0x00
+    }
 
     print('********************************')
     print('*  0 ->  exit                                         ')
