@@ -643,7 +643,7 @@ class RS232(object):
             while True:
                 if 0 < self.instance.inWaiting():
                     data.extend(self.instance.read())
-                if operator.eq(data[-3:-2], 0xFF):
+                if operator.eq(data[-3], 0xFF):
                     break
                 continue
         if self.__check_msg(data):
