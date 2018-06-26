@@ -640,10 +640,14 @@ class RS232(object):
         trans_log_flag = 0
         self.__clear_cache()
         if self.__send_data(global_msg_type['get_trans_log'], None):
+            since = time.time()
             while True:
                 if 0 < self.instance.inWaiting():
                     data.extend(self.instance.read())
-                if operator.eq(data[-3], 0xFF):
+                if operator.ge(len(data), 3):
+                    if operator.eq(data[-3], 0xFF):
+                        break
+                if operator.gt(time.time() - since, 60*5):
                     break
                 continue
         if self.__check_msg(data):
