@@ -16,7 +16,7 @@ operate on windows COM
 
 
 def test_com():
-    "test windows COM recv and send data"
+    """test windows COM recv and send data"""
     port = []
     plist = list(serial.tools.list_ports.comports())
     for p in plist:
@@ -127,6 +127,11 @@ class RS232(object):
             return False
 
     def __check_msg(self, content):
+        """ ensure the content is entire POS command message"""
+        if content is None:
+            return False
+        if operator.lt(len(content), 13):
+            return False
         msg_len = content[4:5]*256 + content[5:6]
         if msg_len == len(content[6:-2]):
             data_len = content[11:12]*256 + content[12:13]
@@ -211,30 +216,31 @@ class RS232(object):
         """ receive com message from terminal """
         data = bytearray()
         if self.instance is None:
-            return None
+            return bytes()
         since = time.time()
-        while (0 < self.instance.inWaiting()
-                    and time.time() - since < timeout):
+        while 0 < self.instance.inWaiting():
             data.extend(self.instance.read())
+            if operator.gt(timeout, 0):
+                    if (0 == len(data) and (time.time() < since + timeout)):
+                        break
         return bytes(data)
 
-    def __check_recv_ack(self):
-        error_code = bytearray()
-        retry_num = 0
-        while retry_num < self.retry_num:
-            data = self.__recv_data(self.recv_timeout)
-            if data is None:
-                return False
-            if self.__check_msg(data):
-                    error_code.extend(self.__get_data(data))  # ack
-                    if operator.eq(error_code.decode('utf-8'), '06'):
-                        print('recv msg OK')
-                        return True
-            else:
-                retry_num += 1
+    def __check_recv_response(self):
+        response_data = bytearray()
+        data = self.__recv_data(self.recv_timeout)
+        if operator.eq(len(data), 0):
+            return bytes()
+        if self.__check_msg(data):
+                response_data.extend(self.__get_data(data))  # error code
+                if operator.le(len(response_data), 2):
+                    print("recv msg Invalid")
+                    return bytes()
+                else:
+                    print('recv msg OK')
+                    return bytes(response_data)
         else:
-            print("recv msg %d retry done, stop recv" % retry_num)
-            return False
+            print("recv msg Invalid")
+            return bytes()
 
     def __clear_cache(self):
         if self.instance is not None:
@@ -244,62 +250,20 @@ class RS232(object):
     def setConfig(self, reader_config_object):
         """ set static reader configuration """
         reader_config = bytes(json.dumps(reader_config_object), "utf-8")
-        data_len = left_len = len(reader_config)
-        retry_num = 0
-        index = 0
         self.__clear_cache()
-        while 0 < left_len:   #send segment
-            if self.__msg_len < left_len:
-                max_send_len = self.__msg_len
-            else:
-                max_send_len = left_len
-
-            if self.__send_data(global_msg_type['set_config'], reader_config[index:index+max_send_len]):
-                # recv response
-                index += max_send_len
-                left_len -= max_send_len
-            else:
-                print('send request msg NOK, stop')
-                break
-
-        if 0 == left_len:
-            print('send request msg[%d] OK' % data_len)
-            return True
+        if self.__send_data(global_msg_type['set_config'], reader_config):
+            print('send request msg[%d] OK' % len(reader_config))
         else:
-            return False
-
-        while retry_num < self.retry_num:
-            data = self.__recv_data(self.recv_timeout)
-            if data is None:
-                return False
-            if operator.eq(data, 'ACK'):  # ack
-                print('recv msg OK')
-                return True
-            else:
-                retry_num += 1
-        else:
-            print("recv msg %d retry done, stop recv" % retry_num)
-            return False
+            print('send request msg NOK, stop')
 
     def getConfig(self):
         """ get current config values """
         reader_config = {}
         self.__clear_cache()
         if self.__send_data(global_msg_type['get_config'], None):
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():
-                    if self.__check_msg(data):
-                        reader_config = json.loads(self.__get_data(data))
-                        print('recv msg OK')
-                        break
-                else:
-                    retry_num += 1
-            else:
-                print("recv msg %d retry done, stop recv" % retry_num)
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                reader_config = json.loads(self.__get_data(data))
         return reader_config
 
     #@property
@@ -308,134 +272,56 @@ class RS232(object):
         capk_tuple = ()
         self.__clear_cache()
         if self.__send_data(global_msg_type['get_capk'], None):
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():
-                    if self.__check_msg(data):
-                        capk_config = json.loads(self.__get_data(data))
-                        if isinstance(capk_config, dict):
-                            for x in range(len(capk_config)):
-                                if isinstance(x, dict):
-                                    tmp_tuple = tuple(x)
-                                    capk_tuple += tmp_tuple
-                        print('recv msg OK')
-                        break
-                else:
-                    retry_num += 1
-            else:
-                print("recv msg %d retry done, stop recv" % retry_num)
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                capk_config = json.loads(self.__get_data(data))
+                if isinstance(capk_config, dict):
+                    for x in range(len(capk_config)):
+                        if isinstance(x, dict):
+                            tmp_tuple = tuple(x)
+                            capk_tuple += tmp_tuple
         return capk_tuple
+
 
     def setCAPK(self, CAPK_object):
         """ set CAPK """
         capk_config = bytes(json.dumps(CAPK_object), "utf-8")
-        data_len = left_len = len(capk_config)
-        max_send_len = 0
-        index = 0
         self.__clear_cache()
-        while 0 < left_len:   #send segment
-            if self.__msg_len < left_len:
-                max_send_len = self.__msg_len
-            else:
-                max_send_len = left_len
-
-            if self.__send_data(global_msg_type['set_config'], capk_config[index:index+max_send_len]):
-                # recv response
-                index += max_send_len
-                left_len -= max_send_len
-            else:
-                print('send request msg NOK, stop')
-                break
-        if 0 == left_len:
-            print('send request msg[%d] OK' % data_len)
-            return True
+        if self.__send_data(global_msg_type['set_config'], capk_config):
+            print('send request msg[%d] OK' % len(capk_config))
         else:
-            return False
-
-        while retry_num < self.retry_num:
-            data = self.__recv_data(self.recv_timeout)
-            if data is None:
-                return False
-            if operator.eq(data, 'ACK'):  # ack
-                print('recv msg OK')
-                return True
-            else:
-                retry_num += 1
-        else:
-            print("recv msg %d retry done, stop recv" % retry_num)
-            return False
+            print('send request msg NOK, stop')
 
     def deleteCAPK(self, CAPK_object):
         """ delete CAPK """
         capk_config = bytes(json.dumps(CAPK_object), "utf-8")
-        data_len = left_len = len(capk_config)
-        max_send_len = 0
-        index = 0
         self.__clear_cache()
-        while 0 < left_len:   #send segment
-            if self.__msg_len < left_len:
-                max_send_len = self.__msg_len
-            else:
-                max_send_len = left_len
-
-            if self.__send_data(global_msg_type['del_capk'], capk_config[index:index+max_send_len]):
-                # recv response
-                index += max_send_len
-                left_len -= max_send_len
-            else:
-                print('send request msg NOK, stop')
-                break
-        if 0 == left_len:
-            print('send request msg[%d] OK' % data_len)
-            return True
+        if self.__send_data(global_msg_type['del_capk'], capk_config):
+            print('send request msg[%d] OK' % len(capk_config))
         else:
-            return False
-
-        while retry_num < self.retry_num:
-            data = self.__recv_data(self.recv_timeout)
-            if data is None:
-                return False
-            if operator.eq(data, 'ACK'):  # ack
-                print('recv msg OK')
-                return True
-            else:
-                retry_num += 1
-        else:
-            print("recv msg %d retry done, stop recv" % retry_num)
-            return False
-
+            print('send request msg NOK, stop')
 
     def getPollingModes(self):
         """ get supported polling modes """
+        polling_mode = bytearray()
+        self.__clear_cache()
         if self.__send_data(global_msg_type['get_poll_mode'], None):
             # recv response
-            polling_mode = bytearray()
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():
-                    if self.__check_msg(data):
-                        polling_mode.extend(self.__get_data(data))
-                        print('recv msg OK')
-                        return  polling_mode.decode('utf-8')
-                else:
-                    retry_num += 1
-            else:
-                print("recv msg %d retry done, stop recv" % retry_num)
-            return None
-
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                polling_mode.extend(self.__get_data(data))
+        return  polling_mode.decode('utf-8')
+            
     def reset(self):
         """ reset or reboot terminal """
+        self.__clear_cache()
         if self.__send_data(global_msg_type['reset'], None):
             # recv response
-            if self.__check_recv_ack():
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
                 return True
             else:
+                print("recv msg Invalid")
                 return False
         else:
             print('send request msg NOK, stop')
@@ -443,159 +329,85 @@ class RS232(object):
 
     def getSerialNumber(self):
         """ get terminal serial number """
+        serial_number = bytearray()
+        self.__clear_cache()
         if self.__send_data(global_msg_type['get_serial_num'], None):
             # recv response
-            serial_number = bytearray()
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():  # ack
-                    if self.__check_msg(data):
-                        serial_number.extend(self.__get_data(data))
-                        print('recv msg OK')
-                        return serial_number.decode('utf-8')
-                else:
-                    retry_num += 1
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                serial_number.extend(self.__get_data(data))
             else:
-                print("recv msg %d retry done, stop recv" % retry_num)
-                return None
+                print("recv msg Invalid")
         else:
             print('send request msg NOK, stop')
-            return None
+            return serial_number.decode('utf-8')
 
     def getFWVersion(self):
         """ FW version installed on terminal """
+        fw_version = bytearray()
+        self.__clear_cache()
         if self.__send_data(global_msg_type['get_fw_version'], None):
             # recv response
-            fw_version = bytearray()
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():  # ack
-                    if self.__check_msg(data):
-                        fw_version.extend(self.__get_data(data))
-                        print('recv msg OK')
-                        return fw_version.decode('utf-8')
-                else:
-                    retry_num += 1
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                fw_version.extend(self.__get_data(data))
             else:
-                print("recv msg %d retry done, stop recv" % retry_num)
-                return None
+                print("recv msg Invalid")
         else:
             print('send request msg NOK, stop')
-            return None
+        return fw_version.decode('utf-8')
 
     def getPaymentAppletVersion(self):
         """ return payment applet version installed on reader """
+        payment_version = bytearray()
+        self.__clear_cache()
         if self.__send_data(global_msg_type['get_payment_version'], None):
             # recv response
-            payment_version = bytearray()
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():  # ack
-                    if self.__check_msg(data):
-                        payment_version.extend(self.__get_data(data))
-                        print('recv msg OK')
-                        return payment_version.decode('utf-8')
-                else:
-                    retry_num += 1
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                payment_version.extend(self.__get_data(data))
             else:
-                print("recv msg %d retry done, stop recv" % retry_num)
-                return None
+                print("recv msg Invalid")
         else:
             print('send request msg NOK, stop')
-            return None
+        return payment_version.decode('utf-8')
 
     def getVASAppletVersion(self):
         """ return VAS applet version installed on reader """
+        vas_version = bytearray()
+        self.__clear_cache()
         if self.__send_data(global_msg_type['get_vas_version'], None):
             # recv response
-            vas_version = bytearray()
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():  # ack
-                    if self.__check_msg(data):
-                        vas_version.extend(self.__get_data(data))
-                        print('recv msg OK')
-                        return vas_version.decode('utf-8')
-                else:
-                    retry_num += 1
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                vas_version.extend(self.__get_data(data))
             else:
-                print("recv msg %d retry done, stop recv" % retry_num)
-                return None
+                print("recv msg Invalid")
         else:
             print('send request msg NOK, stop')
-            return None
+        return vas_version.decode('utf-8')
 
     def startTransaction(self, transaction_start_object):
         """ put terminal in vas or payment mode """
         trans_config = bytes(json.dumps(transaction_start_object), "utf-8")
-        data_len = left_len = len(trans_config)
-        max_send_len = 0
-        index = 0
         self.__clear_cache()
-        while 0 < left_len:   #send segment
-            if self.__msg_len < left_len:
-                max_send_len = self.__msg_len
-            else:
-                max_send_len = left_len
-
-            if self.__send_data(global_msg_type['start_transaction'], trans_config[index:index+max_send_len]):
-                # recv response
-                index += max_send_len
-                left_len -= max_send_len
-            else:
-                print('send request msg NOK, stop')
-                break
-
-        if 0 == left_len:
-            print('send request msg[%d] OK' % data_len)
-            return True
+        if self.__send_data(global_msg_type['start_transaction'], trans_config):
+            print('send request msg[%d] OK' % len(trans_config))
         else:
-            return False
-
-        while retry_num < self.retry_num:
-            data = self.__recv_data(self.recv_timeout)
-            if data is None:
-                return False
-            if operator.eq(data, 'ACK'):  # ack
-                print('recv msg OK')
-                return True
-            else:
-                retry_num += 1
-        else:
-            print("recv msg %d retry done, stop recv" % retry_num)
-            return False
+            print('send request msg NOK, stop')
 
     def getTransactionStatus(self):
         """ get transaction status inprogress, complete, or errorcode """
         trans_status = {}
         self.__clear_cache()
         if self.__send_data(global_msg_type['get_trans_status'], None):
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():
-                    if self.__check_msg(data):
-                        trans_status = json.loads(self.__get_data(data))
-                        print('recv msg OK')
-                        break
-                else:
-                    retry_num += 1
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                trans_status = json.loads(self.__get_data(data))
             else:
-                print("recv msg %d retry done, stop recv" % retry_num)
+                print("recv msg Invalid")
+        else:
+            print('send request msg NOK, stop')
         return trans_status
 
     def getTransactionResult(self):
@@ -603,27 +415,21 @@ class RS232(object):
         trans_result = {}
         self.__clear_cache()
         if self.__send_data(global_msg_type['get_trans_result'], None):
-            retry_num = 0
-            while retry_num < self.retry_num:
-                data = self.__recv_data(self.recv_timeout)
-                if data is None:
-                    return None
-                if 0 < data.__len__():
-                    if self.__check_msg(data):
-                        trans_result = json.loads(self.__get_data(data))
-                        print('recv msg OK')
-                        break
-                else:
-                    retry_num += 1
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
+                trans_result = json.loads(self.__get_data(data))
             else:
-                print("recv msg %d retry done, stop recv" % retry_num)
+                print("recv msg Invalid")
+        else:
+            print('send request msg NOK, stop')
         return trans_result
 
     def cancelTransaction(self):
         """ cancel current transaction or vas mode and return to idle mode """
         if self.__send_data(global_msg_type['cancel_transaction'], None):
             # recv response
-            if self.__check_recv_ack():
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
                 return True
             else:
                 return False
@@ -647,19 +453,22 @@ class RS232(object):
                 if operator.ge(len(data), 3):
                     if operator.eq(data[-3], 0xFF):
                         break
-                if operator.gt(time.time() - since, 60*5):
-                    break
+                if operator.gt(time.time() - since, 3):
+                    if operator.eq(len(data), 0):   #
+                        break
                 continue
         if self.__check_msg(data):
             tmp_data = self.__get_data(data)
-            trans_log = {tmp_data[0:-1], tmp_data[-1:]}
+            if operator.gt(len(tmp_data, 1)):   #error code 
+                trans_log = {tmp_data[0:-1], tmp_data[-1:]}
         return trans_log
 
     def clearTransactionLog(self):
         """ close log file for next logging session """
         if self.__send_data(global_msg_type['clear_trans_log'], None):
             # recv response
-            if self.__check_recv_ack():
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
                 return True
             else:
                 return False
@@ -672,7 +481,8 @@ class RS232(object):
         self.__clear_cache()
         if self.__send_data(global_msg_type['close'], None):
             # recv response
-            if self.__check_recv_ack():
+            data =  self.__check_recv_response()
+            if operator.gt(len(data), 0):
                 if self.com_open:
                     self.instance.close()
                     self.com_open = False
