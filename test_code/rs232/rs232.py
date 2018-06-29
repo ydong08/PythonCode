@@ -84,7 +84,6 @@ class RS232(object):
         self.recv_timeout = 5
         self.com_open = False
         self.__msg_len = 4096 - 12   #after adding msg header and msg info, finally, not exceed 255bytes
-        self.retry_num = 3
 
         port_list = list(serial.tools.list_ports.comports(True))
         port = []
