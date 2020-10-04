@@ -1,4 +1,4 @@
-#!/env/bin/python
+#!/usr/bin/python3
 # _*_ coding:utf-8 _*_
 
 
@@ -36,7 +36,9 @@ g = gen2()
 print(g.send(None)) # start generator, or next(g)
 print(g.send('aaa'))
 print(g.send(3))
-print(g.send('e'))
+#print(g.send('e'))
 
+""" 生成器解析(not tuple) """
+gen3 = (x**2 for x in range(10))
+print("gen3: ", next(gen3))
 
-    
