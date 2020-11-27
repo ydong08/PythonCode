@@ -6,13 +6,14 @@ import os,sys,time
 import telnetlib
 import logging
 import subprocess
+import winsound
 
 class TelnetCli:
+    count = 0
     def __init__(self):
         self.ip = "192.168.1.1"
         self.username = "root"
         self.password = "shujujieru_1870_201809"
-        self.count = 0
         self.tc = telnetlib.Telnet()
 
     def login(self):
@@ -37,74 +38,101 @@ class TelnetCli:
             logging.error('%s login NOK', self.ip)
             return False
 
-    def get_int_result_cmd(self, cmd):
-        self.tc.write(cmd.encode('ascii') + b'\n')
-        time.sleep(1)
-        result = self.tc.read_very_eager().decode('ascii').split('\r\n')
-        #print(result)
-        if True == result[1].isdecimal():
-            return int(result[1])
-        else:
-            return 0
-
-    def calcMemory(self):
-        vsz_origin = {}
-        rss_origin = {}
-
+    def generate_log(self):
+        # create shell script file
+        gen_script="cd /tmp;touch collectinfo;chmod +x collectinfo"
         try:
-            fd = open("result_memory", "w")
+            self.tc.write(gen_script.encode('ascii') + b'\n')
         except:
-            logging.error("open result fial.")
             return False
 
-        cmd_str = """/bin/ps www | grep -v '\[' | /usr/bin/awk '{if(NR>1)print $1}'"""
-        self.tc.write(cmd_str.encode('ascii') + b'\n')
+        # generate script content
+        script_cmd="""
+        #!/bin/sh
+        ppptid=$(ip rule show  | grep "172." | awk '{print $NF}')
+        nastid=$(ip rule show  | grep "192." | grep -v "46" | awk '{print $NF}')
+
+        cd /tmp
+        dmesg > defaultrt_console_log
+        ip rule show >> defaultrt_console_log
+        ip route show table main >> defaultrt_console_log
+        ip route show table $ppptid >> defaultrt_console_log
+        ip route show table $nastid >> defaultrt_console_log
+        suffix=$(date "+%s")
+        tar -zcf defaultrt$suffix.tar ppp1.log defaultrt_console_log
+        tftp -pl defaultrt$suffix.tar 192.168.1.2
+        """
+
+        gen_script=script_cmd + " > collectinfo"
+        try:
+            self.tc.write(gen_script.encode('ascii') + b'\n')
+        except:
+            return False
+
+        # exec script
+        gen_script="./collectinfo\r\n"
+        try:
+            self.tc.write(gen_script.encode('ascii') + b'\n')
+        except:
+            return False
+
+        time.sleep(10)
+        self.tc.close()
+        return True
+
+    def checkRoute(self):
+        cmd_str = "ip route show | grep default"
+    
+        try:
+            self.tc.write(cmd_str.encode('ascii') + b'\n')
+        except:
+            return False
+        
         time.sleep(2)
         recv_content = self.tc.read_very_eager().decode('ascii')
-        pidlist = recv_content.split('\r\n')
-        pidlist[0] = '0'
-        pidlist.remove('# ')
+        rule = recv_content.split('\r\n')[1]
+        if 14 < len(rule):
+            TelnetCli.count = 0
+            rule_list = rule.split(' ')
+            if 1 < len(rule_list):
+                print(time.strftime("%Y-%m-%d %H:%M:%S") + '|default route gateway:' + rule_list[2])
+        else:
+            print(time.strftime("%Y-%m-%d %H:%M:%S") + '|default route rule LOST,WARNNING!!!')
+            winsound.Beep(600,1000)
+            TelnetCli.count += 1
+            if 1 == TelnetCli.count:
+                self.generate_log()
 
-        while True:
-            for pid in pidlist:
-                if 0 == len(pid) or 0 == int(pid):
-                    continue
+        return True
 
-                status_file = "/proc/" + str(pid) + "/status"
-                get_vsz_cmd = "/bin/cat " + status_file + "| grep VmSize | awk '{print $2}'"
-                get_rss_cmd = "/bin/cat " + status_file + "| grep VmRSS | awk '{print $2}'"
-                numv = self.get_int_result_cmd(get_vsz_cmd)
-                nums = self.get_int_result_cmd(get_vsz_cmd)
-                if 0 == numv or 0 == nums:
-                    continue
+    def devReboot(self):
+        cmd_str = "reboot"
+        try:
+            self.tc.write(cmd_str.encode('ascii') + b'\n')
+        except:
+            return False
+        
 
-                if 0 == self.count:
-                    vsz_origin[pid] = numv
-                    rss_origin[pid] = nums
-                    print('numv:' + str(numv) + ', nums:' + str(nums))
-                    
-                else:
-                    numv = numv - vsz_origin[pid]
-                    nums = nums - rss_origin[pid]
-                    if 1024 < numv or 1024 < nums:
-                        line = "{} {} {}\n".format(pid, numv, nums)
-                        fd.write(line)
-                        fd.fflush()
-                        print('numv_diff:' + str(numv) + ', nums_diff:' + str(nums))
-                    time.sleep(600)
+def check_loop():
+    start = time.time()
+    while True:
+        tc = TelnetCli()
+        if True == tc.login():
+            pass
+        else:
+            print(time.strftime("%Y-%m-%d %H:%M:%S") + "|login fail and try...")
 
-            self.count = 1
+        tc.checkRoute()
+        time.sleep(60) 
+
+        if 180 < time.time() - start:
+            start = time.time()
+            tc.devReboot()
+            time.sleep(300)
 
 
 if __name__ == "__main__":
-    tc = TelnetCli()
-    if True == tc.login():
-        pass
-    else:
-        logging.warning('%s login fail and exit', tc.ip)
-        sys.exit()
-
-    tc.calcMemory()
+    check_loop()
 
 
 
