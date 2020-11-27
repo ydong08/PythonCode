@@ -16,6 +16,7 @@ class TelnetCli:
         self.password = "shujujieru_1870_201809"
         self.tc = telnetlib.Telnet()
 
+
     def login(self):
         try:
             self.tc.open(self.ip,port=23)
@@ -37,6 +38,7 @@ class TelnetCli:
         else:
             logging.error('%s login NOK', self.ip)
             return False
+
 
     def generate_log(self):
         # create shell script file
@@ -80,6 +82,7 @@ class TelnetCli:
         self.tc.close()
         return True
 
+
     def checkRoute(self):
         cmd_str = "ip route show | grep default"
     
@@ -96,17 +99,18 @@ class TelnetCli:
             rule_list = rule.split(' ')
             if 1 < len(rule_list):
                 print(time.strftime("%Y-%m-%d %H:%M:%S") + '|default route gateway:' + rule_list[2])
+                return False
         else:
             print(time.strftime("%Y-%m-%d %H:%M:%S") + '|default route rule LOST,WARNNING!!!')
             winsound.Beep(600,1000)
             TelnetCli.count += 1
             if 1 == TelnetCli.count:
                 self.generate_log()
+                return True
 
-        return True
 
     def devReboot(self):
-        cmd_str = "reboot"
+        cmd_str = "reboot\r\n"
         try:
             self.tc.write(cmd_str.encode('ascii') + b'\n')
         except:
@@ -125,11 +129,13 @@ def check_loop():
         tc.checkRoute()
         time.sleep(60) 
 
-        if 180 < time.time() - start:
+        '''
+        # keep device left when error
+        if 1800 < time.time() - start:
             start = time.time()
             tc.devReboot()
             time.sleep(300)
-
+        '''
 
 if __name__ == "__main__":
     check_loop()
