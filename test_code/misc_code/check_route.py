@@ -49,6 +49,7 @@ class TelnetCli:
             return False
 
         # generate script content
+        """根据自己PC的地址修改tftp命令的目的IP"""
         script_cmd="""
         #!/bin/sh
         ppptid=$(ip rule show  | grep "172." | awk '{print $NF}')
@@ -64,6 +65,7 @@ class TelnetCli:
         tar -zcf defaultrt$suffix.tar ppp1.log defaultrt_console_log
         tftp -pl defaultrt$suffix.tar 192.168.1.2
         """
+
 
         gen_script=script_cmd + " > collectinfo"
         try:
@@ -130,7 +132,7 @@ def check_loop():
         time.sleep(60) 
 
         '''
-        # keep device left when error
+        # keep device left when error occured
         if 1800 < time.time() - start:
             start = time.time()
             tc.devReboot()
