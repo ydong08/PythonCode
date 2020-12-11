@@ -8,8 +8,13 @@ import logging
 import subprocess
 import winsound
 
+CHECK_LOOP_TIMEOUT = 60  #seconds
+REBOOT_TIMEOUT = 600    #seconds
+REBOOT_WAITTIME = 240  #seconds
+
 class TelnetCli:
     count = 0
+    lost = 0
     def __init__(self):
         self.ip = "192.168.1.1"
         self.username = "root"
@@ -106,6 +111,7 @@ class TelnetCli:
             print(time.strftime("%Y-%m-%d %H:%M:%S") + '|default route rule LOST,WARNNING!!!')
             winsound.Beep(600,1000)
             TelnetCli.count += 1
+            TelnetCli.lost = 1
             if 1 == TelnetCli.count:
                 self.generate_log()
                 return True
@@ -122,6 +128,7 @@ class TelnetCli:
 def check_loop():
     start = time.time()
     while True:
+        TelnetCli.lost = 0
         tc = TelnetCli()
         if True == tc.login():
             pass
@@ -129,15 +136,15 @@ def check_loop():
             print(time.strftime("%Y-%m-%d %H:%M:%S") + "|login fail and try...")
 
         tc.checkRoute()
-        time.sleep(60) 
-
-        '''
+        
         # keep device left when error occured
-        if 1800 < time.time() - start:
+        if REBOOT_TIMEOUT < time.time() - start and 0 == TelnetCli.lost:
             start = time.time()
             tc.devReboot()
-            time.sleep(300)
-        '''
+            time.sleep(REBOOT_WAITTIME)
+            
+        time.sleep(CHECK_LOOP_TIMEOUT)
+
 
 if __name__ == "__main__":
     check_loop()
