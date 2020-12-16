@@ -15,12 +15,29 @@ REBOOT_WAITTIME = 240  #seconds
 class TelnetCli:
     count = 0
     lost = 0
+    first_login = 0
     def __init__(self):
         self.ip = "192.168.1.1"
         self.username = "root"
         self.password = "shujujieru_1870_201809"
         self.tc = telnetlib.Telnet()
 
+    def save_dmesg(self):
+        if 0 == TelnetCli.first_login:
+            command='cd /tmp;dmesg -c > defaultrt_console_log'
+            try:
+                self.tc.write(command.encode('ascii') + b'\n')
+            except:
+                return False
+        else:
+            command='cd /tmp;dmesg -c >> defaultrt_console_log'
+            try:
+                self.tc.write(command.encode('ascii') + b'\n')
+            except:
+                return False
+
+        TelnetCli.first_login += 1
+        return True
 
     def login(self):
         try:
@@ -39,6 +56,7 @@ class TelnetCli:
         result = self.tc.read_very_eager().decode('ascii')
         if 'Login incorrect' not in result:
             logging.warning('%s login OK', self.ip)
+            self.save_dmesg()
             return True
         else:
             logging.error('%s login NOK', self.ip)
@@ -46,13 +64,14 @@ class TelnetCli:
 
 
     def generate_log(self):
+        '''
         # create shell script file
         gen_script="cd /tmp;touch collectinfo;chmod +x collectinfo"
         try:
             self.tc.write(gen_script.encode('ascii') + b'\n')
         except:
             return False
-
+        '''
         # generate script content
         """根据自己PC的地址修改tftp命令的目的IP"""
         script_cmd="""
@@ -61,17 +80,18 @@ class TelnetCli:
         nastid=$(ip rule show  | grep "192." | grep -v "46" | awk '{print $NF}')
 
         cd /tmp
-        dmesg > defaultrt_console_log
+        dmesg -c >> defaultrt_console_log
         ip rule show >> defaultrt_console_log
+        echo -------------- >> defaultrt_console_log
         ip route show table main >> defaultrt_console_log
+        echo -------------- >> defaultrt_console_log
         ip route show table $ppptid >> defaultrt_console_log
+        echo -------------- >> defaultrt_console_log
         ip route show table $nastid >> defaultrt_console_log
         suffix=$(date "+%s")
         tar -zcf defaultrt$suffix.tar ppp1.log defaultrt_console_log
         tftp -pl defaultrt$suffix.tar 192.168.1.2
         """
-
-
         gen_script=script_cmd + " > collectinfo"
         try:
             self.tc.write(gen_script.encode('ascii') + b'\n')
@@ -79,7 +99,7 @@ class TelnetCli:
             return False
 
         # exec script
-        gen_script="./collectinfo\r\n"
+        gen_script="/bin/sh ./collectinfo\r\n"
         try:
             self.tc.write(gen_script.encode('ascii') + b'\n')
         except:
@@ -110,6 +130,8 @@ class TelnetCli:
         else:
             print(time.strftime("%Y-%m-%d %H:%M:%S") + '|default route rule LOST,WARNNING!!!')
             winsound.Beep(600,1000)
+            winsound.PlaySound("SystemExit", winsound.SND_LOOP)
+            winsound.MessageBeep(eval("winsound.MB_ICONEXCLAMATION"))
             TelnetCli.count += 1
             TelnetCli.lost = 1
             if 1 == TelnetCli.count:
@@ -138,7 +160,7 @@ def check_loop():
         tc.checkRoute()
         
         # keep device left when error occured
-        if REBOOT_TIMEOUT < time.time() - start and 0 == TelnetCli.lost:
+        if (REBOOT_TIMEOUT < (time.time() - start)) and (0 == TelnetCli.lost):
             start = time.time()
             tc.devReboot()
             time.sleep(REBOOT_WAITTIME)
@@ -150,5 +172,3 @@ if __name__ == "__main__":
     check_loop()
 
 
-
-    
