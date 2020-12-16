@@ -33,9 +33,11 @@ class TelnetCli:
             command='cd /tmp;dmesg -c >> defaultrt_console_log'
             try:
                 self.tc.write(command.encode('ascii') + b'\n')
+                self.tc.read_very_eager().decode('ascii')
             except:
                 return False
-
+        time.sleep(1)    
+        content = self.tc.read_very_eager().decode('ascii')
         TelnetCli.first_login += 1
         return True
 
@@ -120,6 +122,7 @@ class TelnetCli:
         
         time.sleep(2)
         recv_content = self.tc.read_very_eager().decode('ascii')
+        print('recv_content: ' + recv_content)
         rule = recv_content.split('\r\n')[1]
         if 14 < len(rule):
             TelnetCli.count = 0
