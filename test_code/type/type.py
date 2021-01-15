@@ -21,7 +21,8 @@ def main():
     #test_tuple()
     #test_list()
     #test_set()
-    test_dict()
+    #test_dict()
+    misc_type()
 
 def test_int():
     print('Int:')
@@ -311,6 +312,17 @@ def func_param_eq(com):
         return False
         
     
+def misc_type():
+    tup_a = (1,3,5,7,9,11)
+    list_b = ['beijing', 'nanjing', 'dongjing', 'xian', 'chengdu']
+    dict_c = {'American':'NewYourk', 'China':'BeiJing','Russian':'Mosico'}
+    set_d = {'people',10000,'province',34,(100,),['liantong','yidong','dianxin']}
+    print(tup_a)
+    print(list_b)
+    print(dict_c)
+    print(set_d)
+
 
 if __name__ == '__main__':
+
     main()
