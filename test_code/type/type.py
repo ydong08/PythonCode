@@ -12,10 +12,10 @@ from math import ceil, pi, e, exp, fabs, floor, sqrt, modf
 
 
 def main():
-    print(keyword.kwlist)
-    print('\n')
-    if func_param_eq('COM4'):
-        print('com 4 is same')
+    #print(keyword.kwlist)
+    #print('\n')
+    #if func_param_eq('COM4'):
+    #    print('com 4 is same\n')
     #test_int()
     #test_string()
     #test_tuple()
@@ -316,7 +316,13 @@ def misc_type():
     tup_a = (1,3,5,7,9,11)
     list_b = ['beijing', 'nanjing', 'dongjing', 'xian', 'chengdu']
     dict_c = {'American':'NewYourk', 'China':'BeiJing','Russian':'Mosico'}
-    set_d = {'people',10000,'province',34,(100,),['liantong','yidong','dianxin']}
+
+    '''
+    集合中不能使用list类型的数据做元素，集合存储时会通过hash计算，可变序列列表无法计算hash
+    集合中可以使用不可变序列元组
+    '''
+    set_d = {'people',10000,'province',34,(100,200,300)}
+
     print(tup_a)
     print(list_b)
     print(dict_c)
