@@ -314,12 +314,26 @@ def func_param_eq(com):
     
 def misc_type():
     tup_a = (1,3,5,7,9,11)
-    list_b = ['beijing', 'nanjing', 'dongjing', 'xian', 'chengdu']
-    dict_c = {'American':'NewYourk', 'China':'BeiJing','Russian':'Mosico'}
 
     '''
-    集合中不能使用list类型的数据做元素，集合存储时会通过hash计算，可变序列列表无法计算hash
-    集合中可以使用不可变序列元组
+    列表的元素可以是任何可变序列和不可变序列，如数字/字符串/元组/列表/字典/集合
+    '''
+    list_b = ['beijing',(106,306,506),['flowers','trees','grasses'],{'floor':'first'},{'apple','pear','orange'}] 
+
+    '''
+    1. 字典元素key：必须是不可变序列，如数字，字符串,元组
+    2. 字典元素value: 可以是可变序列，也可以是不可变序列，如数字/字符串/元组/列表/字典/集合
+    '''
+    dict_c = {'China':'BeiJing',
+                'earth':['hunmans','animales','fishes','123456789',(100,200,300)],
+                10086:(10010,10086,10000),
+                ('a','b','c'):[119,120,12320,12345],
+                'dictionary':{'example':'dictionary'},
+                'setting':{'baby','mami','daddy','grandma','grandpa'}}
+
+    '''
+    1. 集合中不能使用list类型的数据做元素(集合存储时会通过hash计算，可变序列列表无法计算hash)
+    2. 集合中可以使用不可变序列元组/字符串
     '''
     set_d = {'people',10000,'province',34,(100,200,300)}
 
