@@ -22,7 +22,7 @@ def main():
     #test_list()
     #test_set()
     #test_dict()
-    misc_type()
+    test_mixed()
 
 def test_int():
     print('Int:')
@@ -312,8 +312,19 @@ def func_param_eq(com):
         return False
         
     
-def misc_type():
-    tup_a = (1,3,5,7,9,11)
+def test_mixed():
+    '''
+    可变/不可序列主要指 该序列内元素数量 可变/不可变;
+    一般来说不可变序列的元素内容也不可变，但元组中的列表元素可修改
+    不可变序列： 数字/字符串/元组
+    可变序列：   列表/字典/集合
+    '''
+    tup_a = (1,3,5,
+            [2,4,6,8,10],
+            ('desktop','chair','sofa'),
+            {'integer','string','tuple','list','dict','set'},
+            {'date':'2021-01-20','time':'15:38:40'})
+    (tup_a[3])[1] = 12
 
     '''
     列表的元素可以是任何可变序列和不可变序列，如数字/字符串/元组/列表/字典/集合
@@ -344,5 +355,5 @@ def misc_type():
 
 
 if __name__ == '__main__':
-
     main()
+
